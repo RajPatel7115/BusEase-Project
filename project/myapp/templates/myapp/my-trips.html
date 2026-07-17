@@ -1,0 +1,92 @@
+{% extends 'myapp/base.html' %}
+{% load static %}
+
+{% block title %}My Trips · BusEase{% endblock %}
+{% block page_id %}my-trips{% endblock %}
+
+{% block content %}
+
+<section class="container py-4">
+  <div class="d-flex align-items-end justify-content-between mb-4 flex-wrap gap-2">
+    <div>
+      <div class="text-sm font-mono text-primary mb-2">// JOURNEYS</div>
+      <h2 class="text-4xl font-extrabold m-0">My Trips</h2>
+    </div>
+    <span class="text-sm text-muted" id="mt-count">0 total</span>
+  </div>
+  <div id="mt-list"></div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+async function renderTrips(){
+  try {
+    const res = await fetch('/api/my-trips/');
+    const list = await res.json();
+    document.getElementById('mt-count').textContent = list.length+' total';
+    const host = document.getElementById('mt-list');
+    if (!list.length){
+      host.innerHTML = `<div class="be-card p-5 text-center" style="border-radius:1.5rem;">
+        <div style="font-size:4rem;color:hsl(var(--muted-foreground));">🧳</div>
+        <p class="text-lg font-semibold mt-3 mb-1">No trips yet</p>
+        <p class="text-sm text-muted">Your future adventures will live here.</p>
+        <a href="/" class="btn-be btn-primary-grad mt-3">Book your first trip</a>
+      </div>`;
+      return;
+    }
+    host.innerHTML = '<div class="d-flex flex-column gap-3">'+list.map(b=>`
+      <div class="be-card p-4" style="border-radius:1rem;">
+        <div class="d-flex justify-content-between flex-wrap gap-2">
+          <div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <h6 class="font-extrabold text-lg m-0">${b.busName}</h6>
+              <span class="text-xs px-2 py-0 rounded-pill font-semibold" style="${b.status==='confirmed'?'background:rgba(16,185,129,.1);color:#059669;':'background:hsl(var(--muted));color:hsl(var(--muted-foreground));'}">${b.status}</span>
+              ${b.kind==='charter'?'<span class="text-xs px-2 py-0 rounded-pill font-semibold" style="background:rgba(124,58,237,.1);color:#7c3aed;">Charter</span>':''}
+            </div>
+            <div class="text-sm text-muted">${b.busType} · PNR <span class="font-mono">${b.id}</span></div>
+          </div>
+          <div class="text-end">
+            <div class="text-xl font-extrabold text-gradient">₹${b.total}</div>
+            <div class="text-xs text-muted">${b.seats.length} seat(s)</div>
+          </div>
+        </div>
+        <hr class="border-t-be">
+        <div class="d-flex justify-content-between flex-wrap text-sm gap-2">
+          <div><strong>${b.from}</strong> → <strong>${b.to}</strong></div>
+          <div class="text-muted font-mono">${b.date} · ${b.departure} - ${b.arrival}</div>
+        </div>
+        <div class="d-flex gap-2 mt-3">
+          <a class="btn-be btn-outline-be" style="font-size:.8rem;padding:.4rem .7rem;" href="/confirmation/?id=${b.id}">👁 View ticket</a>
+          ${b.status==='confirmed' ? `<button class="btn-be btn-outline-be" style="font-size:.8rem;padding:.4rem .7rem;" onclick="cancelTrip('${b.id}')">🗑 Cancel</button>` : ''}
+        </div>
+      </div>`).join('')+'</div>';
+  } catch(e) {
+    console.error(e);
+    toast.error('Failed to load trips');
+  }
+}
+window.cancelTrip = async function(id){
+  if (!confirm('Cancel this booking?')) return;
+  try {
+    const res = await fetch('/api/bookings/cancel/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ booking_id: id })
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast.success('Booking cancelled');
+      renderTrips();
+    } else {
+      toast.error('Cancellation failed: ' + (data.error || ''));
+    }
+  } catch(e) {
+    console.error(e);
+    toast.error('Connection error');
+  }
+};
+document.addEventListener('DOMContentLoaded', renderTrips);
+</script>
+{% endblock %}

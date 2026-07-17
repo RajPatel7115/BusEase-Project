@@ -1,0 +1,111 @@
+{% extends 'myapp/base.html' %}
+{% load static %}
+
+{% block title %}Support · BusEase{% endblock %}
+{% block page_id %}support{% endblock %}
+
+{% block content %}
+
+<section class="container py-5">
+  <div class="text-center mb-5">
+    <div class="text-sm font-mono text-primary mb-2">// HELP CENTER</div>
+    <h1 class="text-5xl font-extrabold" style="font-size:clamp(2.25rem,4vw,3rem);">We're here for you, 24/7.</h1>
+    <p class="text-muted mt-2 mx-auto" style="max-width:36rem;">Real humans. Real fast. Pick the channel you prefer — we'll be there.</p>
+  </div>
+
+  <div class="row g-3 mb-5">
+    
+      <div class="col-md-4">
+        <div class="be-card p-4 h-100 hover-lift transition-all" style="border-radius:1rem;">
+          <div class="size-12 rounded-xl mb-3 grid-place shadow-elegant" style="background:var(--gradient-primary); color:hsl(var(--primary-foreground)); font-size:1.5rem;">📞</div>
+          <div class="text-sm text-muted">Call us</div>
+          <div class="font-extrabold text-xl mt-1">1800-123-BUSE</div>
+          <div class="text-xs text-muted mt-1">Toll-free · 24/7</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="be-card p-4 h-100 hover-lift transition-all" style="border-radius:1rem;">
+          <div class="size-12 rounded-xl mb-3 grid-place shadow-elegant" style="background:var(--gradient-primary); color:hsl(var(--primary-foreground)); font-size:1.5rem;">💬</div>
+          <div class="text-sm text-muted">Live chat</div>
+          <div class="font-extrabold text-xl mt-1">Start now</div>
+          <div class="text-xs text-muted mt-1">Avg reply: 30s</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="be-card p-4 h-100 hover-lift transition-all" style="border-radius:1rem;">
+          <div class="size-12 rounded-xl mb-3 grid-place shadow-elegant" style="background:var(--gradient-primary); color:hsl(var(--primary-foreground)); font-size:1.5rem;">✉️</div>
+          <div class="text-sm text-muted">Email</div>
+          <div class="font-extrabold text-xl mt-1">help@busease.in</div>
+          <div class="text-xs text-muted mt-1">Reply within 2h</div>
+        </div>
+      </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-5">
+      <div class="be-card p-4" style="border-radius:1.5rem;">
+        <div class="d-flex align-items-center gap-2 mb-3"><span class="text-primary">❓</span><h3 class="text-2xl font-extrabold m-0">Frequently asked</h3></div>
+        <div class="accordion accordion-flush" id="faq">
+          
+            <div class="accordion-item" style="background:transparent; border-color:hsl(var(--border));">
+              <h2 class="accordion-header"><button class="accordion-button collapsed" style="background:transparent; color:inherit; box-shadow:none; font-weight:600;" type="button" data-bs-toggle="collapse" data-bs-target="#faq0">How do I cancel a booking?</button></h2>
+              <div id="faq0" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body text-muted">Go to My Trips, find your booking, and click Cancel. Refunds usually arrive in 5-7 business days.</div></div>
+            </div>
+            <div class="accordion-item" style="background:transparent; border-color:hsl(var(--border));">
+              <h2 class="accordion-header"><button class="accordion-button collapsed" style="background:transparent; color:inherit; box-shadow:none; font-weight:600;" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">Can I change my seat after booking?</button></h2>
+              <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body text-muted">Seat changes are subject to operator availability. Reach out to our support and we will help you swap if possible.</div></div>
+            </div>
+            <div class="accordion-item" style="background:transparent; border-color:hsl(var(--border));">
+              <h2 class="accordion-header"><button class="accordion-button collapsed" style="background:transparent; color:inherit; box-shadow:none; font-weight:600;" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">What payment methods are accepted?</button></h2>
+              <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body text-muted">UPI (GPay, PhonePe, Paytm, BHIM), all major credit/debit cards, and net banking from 50+ banks.</div></div>
+            </div>
+            <div class="accordion-item" style="background:transparent; border-color:hsl(var(--border));">
+              <h2 class="accordion-header"><button class="accordion-button collapsed" style="background:transparent; color:inherit; box-shadow:none; font-weight:600;" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">Is my payment secure?</button></h2>
+              <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body text-muted">Absolutely. We use 256-bit SSL and PCI DSS-compliant payment processors. Your card details never touch our servers.</div></div>
+            </div>
+            <div class="accordion-item" style="background:transparent; border-color:hsl(var(--border));">
+              <h2 class="accordion-header"><button class="accordion-button collapsed" style="background:transparent; color:inherit; box-shadow:none; font-weight:600;" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">How does charter pricing work?</button></h2>
+              <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body text-muted">Charter pricing = base fleet cost + (per-km rate × distance) + add-ons + 5% GST. Fully transparent — no hidden fees.</div></div>
+            </div>
+            <div class="accordion-item" style="background:transparent; border-color:hsl(var(--border));">
+              <h2 class="accordion-header"><button class="accordion-button collapsed" style="background:transparent; color:inherit; box-shadow:none; font-weight:600;" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">Do offer codes stack with discounts?</button></h2>
+              <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body text-muted">Each booking allows one offer code. The system auto-applies the best available discount to maximise savings.</div></div>
+            </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-7">
+      <div class="be-card p-4" style="border-radius:1.5rem;">
+        <h3 class="text-2xl font-extrabold mb-3">Send a message</h3>
+        <form id="support-form" class="d-flex flex-column gap-3">
+          <div class="row g-3">
+            <div class="col-sm-6"><label class="label-be">Name</label><input class="input-be mt-1" required></div>
+            <div class="col-sm-6"><label class="label-be">Email</label><input class="input-be mt-1" type="email" required></div>
+          </div>
+          <div><label class="label-be">PNR (optional)</label><input class="input-be mt-1 font-mono"></div>
+          <div><label class="label-be">Message</label><textarea class="textarea-be mt-1" rows="5" required></textarea></div>
+          <button class="btn-be btn-primary-grad btn-lg-be w-100">Send message</button>
+        </form>
+        <div class="row g-3 text-center pt-4 mt-4 border-t-be">
+          
+            <div class="col-4 text-xs"><div class="text-primary mb-1" style="font-size:1.25rem;">🛡</div><div class="font-semibold">100% secure</div></div>
+          
+            <div class="col-4 text-xs"><div class="text-primary mb-1" style="font-size:1.25rem;">💸</div><div class="font-semibold">Refund guarantee</div></div>
+          
+            <div class="col-4 text-xs"><div class="text-primary mb-1" style="font-size:1.25rem;">📍</div><div class="font-semibold">100+ cities</div></div>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.getElementById('support-form').addEventListener('submit', e=>{
+    e.preventDefault(); toast.success("Message sent! We'll reply within 2 hours."); e.target.reset();
+  });
+</script>
+{% endblock %}

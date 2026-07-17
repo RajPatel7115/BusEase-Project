@@ -1,0 +1,161 @@
+{% extends 'myapp/base.html' %}
+{% load static %}
+
+{% block title %}Search results · BusEase{% endblock %}
+{% block page_id %}search{% endblock %}
+
+{% block content %}
+
+<section class="container py-4">
+  <div id="be-search-host" class="mb-4"></div>
+
+  <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+    <h2 class="text-3xl font-extrabold m-0"><span id="srch-from">Mumbai</span> <span class="text-primary mx-1">→</span> <span id="srch-to">Pune</span></h2>
+    <div class="d-flex align-items-center gap-3">
+      <span class="text-sm text-muted" id="srch-count">0 buses</span>
+      <button class="btn-be btn-outline-be d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#srch-filters">⚙ Filters</button>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <aside class="col-lg-3 d-none d-lg-block">
+      <div class="be-card p-4 sticky-top" style="border-radius:1rem; top:5rem;">
+        <h6 class="font-bold mb-3">⚙ Filters</h6>
+        <div id="srch-filter-body"></div>
+      </div>
+    </aside>
+    <div class="col-lg-9">
+      <div id="srch-results" class="d-flex flex-column gap-3"></div>
+    </div>
+  </div>
+</section>
+
+<div class="offcanvas offcanvas-end" id="srch-filters" tabindex="-1">
+  <div class="offcanvas-header"><h5 class="offcanvas-title">Filters</h5><button class="btn-close" data-bs-dismiss="offcanvas"></button></div>
+  <div class="offcanvas-body" id="srch-filter-body-mobile"></div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'myapp/assets/js/search-form.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', ()=>{
+  const from = BE.qs('from','Mumbai'), to = BE.qs('to','Pune'), date = BE.qs('date', BE.fmtISO(new Date()));
+  document.getElementById('srch-from').textContent = from;
+  document.getElementById('srch-to').textContent = to;
+  renderSearchForm(document.getElementById('be-search-host'), {from,to,date});
+
+  const all = {{ buses_json|safe }};
+  const types = [...new Set(all.map(b=>b.type))];
+  const state = { maxPrice:2000, types:[], dep:'any', sort:'price' };
+
+  function buildFilters(host){
+    host.innerHTML = `
+      <div class="mb-3">
+        <label class="label-be tiny font-bold">Max Price: ₹<span id="mp-${host.id}">${state.maxPrice}</span></label>
+        <input type="range" min="400" max="2000" step="50" value="${state.maxPrice}" class="form-range mt-2 srch-mp">
+      </div>
+      <div class="mb-3">
+        <label class="label-be tiny font-bold">Bus Type</label>
+        <div class="d-flex flex-column gap-2 mt-2">
+          ${types.map(t=>`<label class="d-flex align-items-center gap-2 text-sm" style="cursor:pointer;">
+            <input type="checkbox" class="form-check-input srch-type" value="${t}" ${state.types.includes(t)?'checked':''}>${t}
+          </label>`).join('')}
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="label-be tiny font-bold">Departure</label>
+        <select class="input-be h-10 mt-2 srch-dep">
+          <option value="any">Any time</option>
+          <option value="morning">Morning (06-12)</option>
+          <option value="afternoon">Afternoon (12-18)</option>
+          <option value="evening">Evening (18-24)</option>
+          <option value="night">Night (00-06)</option>
+        </select>
+      </div>
+      <div>
+        <label class="label-be tiny font-bold">Sort by</label>
+        <select class="input-be h-10 mt-2 srch-sort">
+          <option value="price">Price (low to high)</option>
+          <option value="rating">Rating</option>
+          <option value="duration">Duration</option>
+          <option value="departure">Departure time</option>
+        </select>
+      </div>`;
+    host.querySelector('.srch-dep').value = state.dep;
+    host.querySelector('.srch-sort').value = state.sort;
+    host.querySelector('.srch-mp').addEventListener('input', e=>{ state.maxPrice=+e.target.value; document.getElementById('mp-'+host.id).textContent=e.target.value; renderAll(); });
+    host.querySelectorAll('.srch-type').forEach(cb=>cb.addEventListener('change', e=>{
+      if (e.target.checked) state.types.push(e.target.value); else state.types = state.types.filter(x=>x!==e.target.value);
+      renderAll();
+    }));
+    host.querySelector('.srch-dep').addEventListener('change', e=>{ state.dep=e.target.value; renderAll(); });
+    host.querySelector('.srch-sort').addEventListener('change', e=>{ state.sort=e.target.value; renderAll(); });
+  }
+  const fb = document.getElementById('srch-filter-body'); fb.id='fb1'; buildFilters(fb);
+  const fbm = document.getElementById('srch-filter-body-mobile'); fbm.id='fb2'; buildFilters(fbm);
+
+  function filtered(){
+    return all
+      .filter(b=>b.price<=state.maxPrice)
+      .filter(b=>!state.types.length || state.types.includes(b.type))
+      .filter(b=>{
+        if (state.dep==='any') return true;
+        const h = +b.departure.split(':')[0];
+        if (state.dep==='morning') return h>=6 && h<12;
+        if (state.dep==='afternoon') return h>=12 && h<18;
+        if (state.dep==='evening') return h>=18 && h<24;
+        return h<6;
+      })
+      .sort((a,b)=> state.sort==='price' ? a.price-b.price :
+        state.sort==='rating' ? +b.rating-+a.rating :
+        state.sort==='departure' ? a.departure.localeCompare(b.departure) :
+        parseInt(a.duration)-parseInt(b.duration));
+  }
+
+  const amenIcon = { WiFi:'📶','Charging Point':'🔌',Snacks:'🍪',Movies:'📺' };
+
+  function renderAll(){
+    const list = filtered();
+    document.getElementById('srch-count').textContent = list.length+' buses';
+    const host = document.getElementById('srch-results');
+    if (!list.length){ host.innerHTML = '<div class="be-card p-5 text-center" style="border-radius:1rem;"><p class="text-muted m-0">No buses match these filters. Try adjusting them.</p></div>'; return; }
+    host.innerHTML = list.map((b,i)=>`
+      <div class="be-card p-4 transition-all hover-lift animate-fade-up" style="border-radius:1rem; animation-delay:${i*.04}s;">
+        <div class="row g-3 align-items-center">
+          <div class="col-md">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+              <div>
+                <h6 class="font-bold text-lg m-0 d-flex align-items-center gap-2">${b.name}
+                  ${b.ecoFriendly?'<span class="px-2 py-0 rounded-pill text-xs font-semibold" style="background:rgba(16,185,129,.1);color:#059669;">🌿 Eco</span>':''}</h6>
+                <div class="text-sm text-muted">${b.type}</div>
+              </div>
+              <div class="d-inline-flex align-items-center gap-1 px-2 py-1 rounded-lg font-bold text-sm" style="background:rgba(16,185,129,.1);color:#059669;">★ ${b.rating}</div>
+            </div>
+            <div class="d-flex align-items-center gap-3 mt-3">
+              <div><div class="font-extrabold font-mono text-lg">${b.departure}</div><div class="text-xs text-muted">📍 ${from}</div></div>
+              <div class="flex-grow-1 position-relative" style="border-top:2px dashed hsl(var(--border));">
+                <span class="position-absolute px-2 text-xs font-mono text-muted" style="left:50%; top:-.7rem; transform:translateX(-50%); background:hsl(var(--card));">${b.duration}</span>
+              </div>
+              <div class="text-end"><div class="font-extrabold font-mono text-lg">${b.arrival}</div><div class="text-xs text-muted">📍 ${to}</div></div>
+            </div>
+            <div class="d-flex flex-wrap gap-1 mt-3">
+              ${b.amenities.map(a=>`<span class="px-2 py-1 rounded-pill text-xs font-medium" style="background:hsl(var(--muted));">${amenIcon[a]||'•'} ${a}</span>`).join('')}
+            </div>
+          </div>
+          <div class="col-md-auto text-md-end border-md-start ps-md-3 d-flex flex-md-column justify-content-between align-items-end gap-2" style="min-width:160px;">
+            <div>
+              <div class="text-3xl font-extrabold text-gradient">₹${b.price}</div>
+              <div class="text-xs text-muted">${b.seatsAvailable} seats left</div>
+            </div>
+            <a class="btn-be btn-primary-grad" href="/seats/?busId=${encodeURIComponent(b.id)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${date}">Select seats →</a>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+  renderAll();
+});
+</script>
+{% endblock %}
+

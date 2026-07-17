@@ -1,0 +1,115 @@
+{% extends 'myapp/base.html' %}
+{% load static %}
+
+{% block title %}Plan a month ahead · BusEase{% endblock %}
+{% block page_id %}advance{% endblock %}
+
+{% block content %}
+
+<section class="position-relative bg-gradient-hero text-white py-5 overflow-hidden" style="padding-top:4rem !important; padding-bottom:4rem !important;">
+  <div style="position:absolute; inset:0; opacity:.6;" class="bg-mesh"></div>
+  <div class="container position-relative">
+    <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-3" style="background:rgba(255,255,255,.1); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,.2); font-size:.85rem;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3z"/></svg><span>PLAN AHEAD · SAVE MORE</span></div>
+    <h1 class="text-5xl font-extrabold" style="font-size:clamp(2.5rem,5vw,4rem); line-height:1.1; max-width:42rem;">Book a month out. <span class="text-gradient">Pay 30% less.</span></h1>
+    <p class="mt-3 text-lg" style="color:rgba(255,255,255,.85); max-width:36rem;">See the full 30-day price calendar before you commit. Lock in tomorrow's adventure at yesterday's rate.</p>
+  </div>
+</section>
+
+<section class="container position-relative pb-5" style="margin-top:-3rem;">
+  <div class="be-card shadow-soft p-4" style="border-radius:1.5rem;">
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <label class="label-be tiny">FROM</label>
+        <input id="adv-from" class="input-be h-12 mt-1" value="Mumbai" autocomplete="off">
+      </div>
+      <div class="col-md-6">
+        <label class="label-be tiny">TO</label>
+        <input id="adv-to" class="input-be h-12 mt-1" value="Pune" autocomplete="off">
+      </div>
+    </div>
+
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+      <h3 class="font-bold text-lg m-0 d-flex align-items-center gap-2"><span class="text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span> Next 30 days · <span id="adv-route">Mumbai → Pune</span></h3>
+      <div class="text-sm text-muted">Cheapest: <span class="font-bold" style="color:#059669;" id="adv-cheap">—</span></div>
+    </div>
+
+    <div id="adv-grid" class="d-grid" style="grid-template-columns: repeat(7, minmax(0,1fr)); gap:.5rem;"></div>
+
+    <div class="mt-4 p-4 d-flex flex-wrap align-items-center justify-content-between gap-3 rounded-2xl" style="background:linear-gradient(135deg, hsl(var(--primary) / .1), hsl(var(--primary-glow) / .1)); border:1px solid hsl(var(--primary) / .2);">
+      <div>
+        <div class="text-sm text-muted d-flex align-items-center gap-1">📍 <span id="adv-route2">Mumbai → Pune</span></div>
+        <div class="text-2xl font-extrabold mt-1" id="adv-sel-date">—</div>
+        <div class="d-flex align-items-center gap-2 text-sm mt-1 font-semibold" style="color:#059669;">📉 <span id="adv-savings">—</span></div>
+      </div>
+      <a id="adv-book" class="btn-be btn-primary-grad btn-lg-be shadow-elegant" href="#">Book at ₹— <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', ()=>{
+    const fromEl = document.getElementById('adv-from');
+    const toEl = document.getElementById('adv-to');
+    attachCitySuggest(fromEl); attachCitySuggest(toEl);
+
+    const today = new Date(); today.setHours(0,0,0,0);
+    const days = Array.from({length:31}, (_,i)=> BE.addDays(today, i));
+    let selected = BE.addDays(today, 30);
+
+    function priceFor(d){
+      const offset = Math.floor((d - today) / 86400000);
+      const base = 850;
+      const earlyDiscount = Math.min(offset * 8, 220);
+      const variance = ((fromEl.value + toEl.value + offset).split('').reduce((a,c)=>a+c.charCodeAt(0),0) % 80) - 40;
+      return Math.max(380, base - earlyDiscount + variance);
+    }
+    function isSameDay(a,b){ return a.toDateString()===b.toDateString(); }
+    function fmtMd(d){ return d.toLocaleDateString('en-US', {month:'short', day:'numeric'}); }
+    function fmtEEE(d){ return d.toLocaleDateString('en-US', {weekday:'short'}); }
+
+    function paint(){
+      const route = (fromEl.value || 'Mumbai') + ' → ' + (toEl.value || 'Pune');
+      document.getElementById('adv-route').textContent = route;
+      document.getElementById('adv-route2').textContent = route;
+
+      let cheapest = days[0];
+      days.forEach(d => { if (priceFor(d) < priceFor(cheapest)) cheapest = d; });
+      document.getElementById('adv-cheap').textContent = fmtMd(cheapest) + ' · ₹' + priceFor(cheapest);
+
+      document.getElementById('adv-grid').innerHTML = days.map((d,i)=>{
+        const p = priceFor(d);
+        const isCheap = isSameDay(d, cheapest);
+        const isSel = isSameDay(d, selected);
+        const cls = isSel ? 'border-primary' : isCheap ? '' : '';
+        const style = isSel
+          ? 'background:var(--gradient-primary);color:hsl(var(--primary-foreground));box-shadow:var(--shadow-elegant);border:2px solid transparent;transform:scale(1.05);z-index:2;'
+          : isCheap
+            ? 'background:rgba(16,185,129,.1);color:#059669;border:2px solid rgba(16,185,129,.2);'
+            : 'background:hsl(var(--card));border:1px solid hsl(var(--border));';
+        return `<button data-i="${i}" class="be-card p-2 text-center d-flex flex-column align-items-center justify-content-between hover-lift transition-all position-relative" style="height:5.5rem;min-width:0;${style}">
+          <span class="text-xs text-muted font-mono" style="color:inherit;opacity:.85;">${fmtEEE(d)}</span>
+          <span class="font-extrabold text-sm mt-1" style="line-height:1;">${d.getDate()}</span>
+          <span class="font-mono font-bold text-xs mt-2" style="color:inherit;">₹${p}</span>
+          ${isCheap ? '<span class="position-absolute badge rounded-pill bg-emerald-500 text-white font-sans font-bold" style="font-size:.5rem;top:-.35rem;left:50%;transform:translateX(-50%);padding:.2rem .4rem;box-shadow:0 2px 4px rgba(16,185,129,.3);">CHEAPEST</span>':''}
+        </button>`;
+      }).join('');
+
+      document.querySelectorAll('#adv-grid button').forEach(b=>{
+        b.addEventListener('click', ()=>{ selected = days[+b.dataset.i]; paint(); });
+      });
+
+      document.getElementById('adv-sel-date').textContent = selected.toLocaleDateString('en-US', {weekday:'long', month:'short', day:'numeric', year:'numeric'});
+      document.getElementById('adv-savings').textContent = 'Save ₹' + (priceFor(today) - priceFor(selected)) + ' vs today\'s price';
+      const bk = document.getElementById('adv-book');
+      bk.innerHTML = 'Book at ₹' + priceFor(selected) + ' <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+      bk.href = `search/?from=${encodeURIComponent(fromEl.value)}&to=${encodeURIComponent(toEl.value)}&date=${BE.fmtISO(selected)}`;
+    }
+    fromEl.addEventListener('input', paint);
+    toEl.addEventListener('input', paint);
+    paint();
+  });
+</script>
+{% endblock %}
