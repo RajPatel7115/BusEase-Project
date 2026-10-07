@@ -1,0 +1,193 @@
+{% extends 'myapp/base.html' %}
+{% load static %}
+
+{% block title %}Live Bus GPS Tracking · BusEase{% endblock %}
+{% block page_id %}track{% endblock %}
+
+{% block content %}
+
+<section class="container py-5" style="padding-top:3.5rem !important;">
+  <div class="mx-auto" style="max-width:52rem;">
+    <div class="text-center mb-4 animate-fade-up">
+      <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-2" style="background:rgba(16,185,129,.15); color:#059669; font-size:.8rem; font-weight:700;">
+        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981;" class="animate-pulse-glow"></span>
+        <span>SATELLITE GPS ACTIVE</span>
+      </div>
+      <h1 class="text-5xl font-extrabold" style="font-size:clamp(2.25rem,4vw,3.25rem);">Track Your Bus in Real-Time</h1>
+      <p class="text-muted mt-2">Enter your PNR or Booking ID to monitor live highway coordinates, speed, and exact ETA.</p>
+    </div>
+
+    <!-- Search PNR Card -->
+    <div class="be-card p-4 shadow-soft mb-4" style="border-radius:1.5rem;">
+      <label class="label-be font-semibold">Enter PNR / Booking ID</label>
+      <div class="d-flex gap-2 mt-2">
+        <input id="track-pnr" class="input-be h-12 font-mono text-uppercase" placeholder="e.g. BE12345678" style="letter-spacing:.05em; font-size:1.05rem;">
+        <button id="track-go" class="btn-be btn-primary-grad btn-lg-be shadow-elegant" style="padding:0 2rem; font-weight:700;">
+          📍 Track Bus
+        </button>
+      </div>
+      <div class="d-flex gap-3 align-items-center mt-2 text-xs text-muted">
+        <span>Try demo: <strong class="text-primary font-mono cursor-pointer" onclick="document.getElementById('track-pnr').value='BE84920155'; document.getElementById('track-go').click();">BE84920155</strong></span>
+        <span>·</span>
+        <span>Live satellite ping interval: 5s</span>
+      </div>
+    </div>
+
+    <!-- Live Telemetry & Tracking Dashboard -->
+    <div id="track-result" class="be-card p-4 p-md-5 animate-fade-up shadow-elegant" style="border-radius:1.5rem; display:none;">
+      <!-- Bus Header & Speed Gauge -->
+      <div class="d-flex align-items-center justify-content-between gap-3 mb-4 flex-wrap pb-4 border-b-be">
+        <div class="d-flex align-items-center gap-3">
+          <div class="size-14 rounded-2xl grid-place shadow-elegant position-relative" style="background:var(--gradient-primary); color:hsl(var(--primary-foreground)); font-size:1.75rem;">
+            🚍
+            <span class="radar-ring"></span>
+          </div>
+          <div>
+            <div class="font-extrabold text-xl" id="tr-bus-name">Volvo 9600 Multi-Axle · MH 12 AB 1234</div>
+            <div class="text-sm text-muted d-flex align-items-center gap-2 mt-1">
+              <span class="badge rounded-pill bg-success-subtle text-success font-semibold">🟢 On Schedule</span>
+              <span>·</span>
+              <span id="tr-route-span">Mumbai → Pune</span>
+            </div>
+          </div>
+        </div>
+        <div class="d-flex gap-3 text-end">
+          <div class="p-2 px-3 rounded-xl bg-muted">
+            <div class="text-xs text-muted font-mono uppercase">Speed</div>
+            <div class="font-extrabold text-xl font-mono text-primary"><span id="tr-speed">72</span> <span style="font-size:.8rem;">km/h</span></div>
+          </div>
+          <div class="p-2 px-3 rounded-xl bg-muted">
+            <div class="text-xs text-muted font-mono uppercase">Next Stop ETA</div>
+            <div class="font-extrabold text-xl text-gradient font-mono" id="tr-eta">18 mins</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Highway Route Progress Bar -->
+      <div class="mb-5">
+        <div class="d-flex justify-content-between text-xs font-mono text-muted mb-2">
+          <span id="tr-bar-start">Origin: Dadar</span>
+          <span class="font-bold text-primary" id="tr-bar-pct">65% of route covered</span>
+          <span id="tr-bar-end">Destination: Pune</span>
+        </div>
+        <div class="position-relative" style="height:12px; border-radius:999px; background:hsl(var(--muted)); overflow:visible;">
+          <div id="tr-prog-bar" class="h-100 rounded-pill bg-gradient-primary" style="width:65%; transition:width 1s ease;"></div>
+          <!-- Moving Bus Marker -->
+          <div id="tr-bus-marker" class="position-absolute grid-place shadow-elegant" style="left:65%; top:-10px; width:32px; height:32px; border-radius:50%; background:hsl(var(--card)); border:2px solid hsl(var(--primary)); transform:translateX(-50%); transition:left 1s ease;">
+            <span style="font-size:14px;">🚌</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Route Milestones & Stops Timeline -->
+      <h6 class="font-bold text-lg mb-3">Live Route Milestones</h6>
+      <div class="position-relative" style="padding-left:2.25rem;" id="track-stops"></div>
+
+      <!-- Refresh Ping Bar -->
+      <div class="border-t-be pt-3 mt-4 d-flex justify-content-between align-items-center flex-wrap gap-2 text-xs text-muted">
+        <span class="d-flex align-items-center gap-1.5 font-mono">
+          <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981;" class="animate-pulse-glow"></span>
+          GPS coordinates updated just now
+        </span>
+        <button type="button" class="btn-be btn-outline-be btn-sm" id="tr-refresh-btn" style="font-size:.75rem; padding:.25rem .75rem;">
+          🔄 Refresh Coordinates
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', ()=>{
+  const pnrInput = document.getElementById('track-pnr');
+  const trackGo = document.getElementById('track-go');
+  const trackResult = document.getElementById('track-result');
+  const refreshBtn = document.getElementById('tr-refresh-btn');
+
+  // Check query parameter ?pnr=...
+  const urlPnr = BE.qs('pnr', '');
+  if (urlPnr) {
+    pnrInput.value = urlPnr;
+    setTimeout(()=> executeTracking(urlPnr), 100);
+  }
+
+  trackGo.addEventListener('click', ()=>{
+    const pnr = pnrInput.value.trim().toUpperCase();
+    if (!pnr) return toast.error('Please enter a PNR number');
+    executeTracking(pnr);
+  });
+
+  pnrInput.addEventListener('keydown', e=>{
+    if (e.key === 'Enter') trackGo.click();
+  });
+
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', ()=>{
+      const pnr = pnrInput.value.trim().toUpperCase() || 'BE84920155';
+      toast.success('GPS coordinates refreshed');
+      // simulate speed change
+      const newSpeed = 65 + Math.floor(Math.random() * 15);
+      document.getElementById('tr-speed').textContent = newSpeed;
+    });
+  }
+
+  function executeTracking(pnr) {
+    // Look up in local storage if exists
+    const b = BE.Bookings.find(pnr);
+    const fromCity = b ? b.from : 'Mumbai';
+    const toCity = b ? b.to : 'Pune';
+    const busName = b ? b.busName : 'Volvo 9600 Multi-Axle · MH 12 AB 1234';
+
+    document.getElementById('tr-bus-name').textContent = busName;
+    document.getElementById('tr-route-span').textContent = fromCity + ' → ' + toCity;
+    document.getElementById('tr-bar-start').textContent = 'Origin: ' + fromCity;
+    document.getElementById('tr-bar-end').textContent = 'Dest: ' + toCity;
+
+    trackResult.style.display = 'block';
+    toast.success('GPS tracking locked for ' + pnr);
+
+    // Dynamic stop generation based on route
+    const stops = [
+      { name: fromCity + ' (Boarding Point)', time: '21:00', status: 'done', note: 'Departed on time' },
+      { name: 'Highway Expressway Toll Gate', time: '22:15', status: 'done', note: 'Passed Toll #1' },
+      { name: 'Lonavala Mid-way Food Plaza', time: '23:30', status: 'current', note: 'Bus currently at rest stop' },
+      { name: 'Talegaon Interchange', time: '00:45', status: 'upcoming', note: 'ETA in 35 mins' },
+      { name: toCity + ' (Central Bus Station)', time: '01:30', status: 'upcoming', note: 'Final Destination' }
+    ];
+
+    document.getElementById('track-stops').innerHTML = `
+      <div style="position:absolute; left:.75rem; top:.75rem; bottom:1.5rem; width:2px; background:hsl(var(--border));"></div>
+      ${stops.map(s => {
+        const isCurrent = s.status === 'current';
+        const isDone = s.status === 'done';
+        const dotStyle = isDone
+          ? 'background:#10b981; border:3px solid #d1fae5; color:#fff;'
+          : isCurrent
+            ? 'background:hsl(var(--primary)); border:3px solid hsl(var(--primary) / .3);'
+            : 'background:hsl(var(--muted)); border:3px solid hsl(var(--border));';
+
+        return `
+          <div class="position-relative pb-4">
+            <div class="position-absolute grid-place ${isCurrent ? 'animate-pulse-glow' : ''}" style="left:-2rem; top:.15rem; width:1.5rem; height:1.5rem; border-radius:50%; ${dotStyle} font-size:10px; font-weight:bold;">
+              ${isDone ? '✓' : isCurrent ? '🚌' : '•'}
+              ${isCurrent ? '<span class="radar-ring"></span>' : ''}
+            </div>
+            <div class="d-flex justify-content-between align-items-start gap-2">
+              <div>
+                <div class="font-extrabold ${isCurrent ? 'text-primary' : 'text-fg'}" style="font-size:1.05rem;">
+                  ${s.name}
+                </div>
+                <div class="text-xs text-muted mt-0.5">${s.note}</div>
+              </div>
+              <div class="text-sm font-mono font-bold text-muted">${s.time}</div>
+            </div>
+          </div>`;
+      }).join('')}
+    `;
+  }
+});
+</script>
+{% endblock %}

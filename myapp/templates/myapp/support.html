@@ -1,0 +1,119 @@
+{% extends 'myapp/base.html' %}
+{% load static %}
+
+{% block title %}24/7 Support & Help Desk · BusEase{% endblock %}
+{% block page_id %}support{% endblock %}
+
+{% block content %}
+
+<section class="container py-5">
+  <div class="text-center mb-5 animate-fade-up">
+    <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-2" style="background:rgba(6,134,248,.12); color:hsl(var(--primary)); font-size:.8rem; font-weight:700;">
+      <span>💬</span><span>24/7 DEDICATED ASSISTANCE</span>
+    </div>
+    <h1 class="text-5xl font-extrabold" style="font-size:clamp(2.25rem,4vw,3.25rem);">We're here for you, anytime.</h1>
+    <p class="text-muted mt-2 mx-auto" style="max-width:38rem;">Real humans and instant AI assistance. Pick the channel you prefer — we'll resolve your query quickly.</p>
+  </div>
+
+  <!-- 3 Support Channels -->
+  <div class="row g-3 mb-5">
+    <div class="col-md-4">
+      <a href="tel:18001232873" class="be-card p-4 h-100 hover-lift transition-all d-block text-decoration-none shadow-sm" style="border-radius:1.25rem;">
+        <div class="size-12 rounded-xl mb-3 grid-place shadow-elegant" style="background:var(--gradient-primary); color:hsl(var(--primary-foreground)); font-size:1.5rem;">📞</div>
+        <div class="text-sm text-muted">Toll-Free Phone Helpline</div>
+        <div class="font-extrabold text-xl mt-1 text-fg">1800-123-BUSE</div>
+        <div class="text-xs text-muted mt-1 d-flex align-items-center gap-1">
+          <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#10b981;"></span>
+          Available 24 hours · All India
+        </div>
+      </a>
+    </div>
+
+    <div class="col-md-4">
+      <div class="be-card p-4 h-100 hover-lift transition-all cursor-pointer shadow-sm" style="border-radius:1.25rem;" onclick="window.openChatbot ? window.openChatbot() : document.getElementById('be-chat-btn')?.click();">
+        <div class="size-12 rounded-xl mb-3 grid-place shadow-elegant" style="background:var(--gradient-primary); color:hsl(var(--primary-foreground)); font-size:1.5rem;">⚡</div>
+        <div class="text-sm text-muted">AI Travel Concierge</div>
+        <div class="font-extrabold text-xl mt-1 text-primary d-flex align-items-center gap-2">
+          Start Live Chat <span style="font-size:1rem;">→</span>
+        </div>
+        <div class="text-xs text-muted mt-1 d-flex align-items-center gap-1">
+          <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#10b981;" class="animate-pulse-glow"></span>
+          Instant replies in under 1 second
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <a href="mailto:help@busease.in" class="be-card p-4 h-100 hover-lift transition-all d-block text-decoration-none shadow-sm" style="border-radius:1.25rem;">
+        <div class="size-12 rounded-xl mb-3 grid-place shadow-elegant" style="background:var(--gradient-primary); color:hsl(var(--primary-foreground)); font-size:1.5rem;">✉️</div>
+        <div class="text-sm text-muted">Email Customer Service</div>
+        <div class="font-extrabold text-xl mt-1 text-fg">help@busease.in</div>
+        <div class="text-xs text-muted mt-1">Written ticket response within 2 hours</div>
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- FAQ Section -->
+    <div class="col-lg-5">
+      <div class="be-card p-4 shadow-soft" style="border-radius:1.5rem;">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <span class="text-primary font-bold">❓</span>
+          <h3 class="text-2xl font-extrabold m-0">Frequently Asked</h3>
+        </div>
+        <div class="accordion accordion-flush" id="faq">
+          <div class="accordion-item" style="background:transparent; border-color:hsl(var(--border));">
+            <h2 class="accordion-header"><button class="accordion-button" style="background:transparent; color:inherit; box-shadow:none; font-weight:700;" type="button" data-bs-toggle="collapse" data-bs-target="#faq0">How do I cancel my bus ticket?</button></h2>
+            <div id="faq0" class="accordion-collapse collapse show" data-bs-parent="#faq"><div class="accordion-body text-muted text-sm">Navigate to <strong>My Trips</strong>, locate your booking card, and click <strong>Cancel</strong>. Refunds are initiated instantly and credited to your original payment method in 5-7 business days.</div></div>
+          </div>
+          <div class="accordion-item" style="background:transparent; border-color:hsl(var(--border));">
+            <h2 class="accordion-header"><button class="accordion-button collapsed" style="background:transparent; color:inherit; box-shadow:none; font-weight:700;" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">Can I change my seat after booking?</button></h2>
+            <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body text-muted text-sm">Yes, subject to operator seat vacancy. Simply click Live Chat or dial our helpline with your PNR number to check available alternatives.</div></div>
+          </div>
+          <div class="accordion-item" style="background:transparent; border-color:hsl(var(--border));">
+            <h2 class="accordion-header"><button class="accordion-button collapsed" style="background:transparent; color:inherit; box-shadow:none; font-weight:700;" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">What payment methods are supported?</button></h2>
+            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body text-muted text-sm">We support all UPI apps (Google Pay, PhonePe, Paytm, BHIM), Debit & Credit cards (Visa, MasterCard, RuPay), and Net Banking across 50+ banks.</div></div>
+          </div>
+          <div class="accordion-item" style="background:transparent; border-color:hsl(var(--border));">
+            <h2 class="accordion-header"><button class="accordion-button collapsed" style="background:transparent; color:inherit; box-shadow:none; font-weight:700;" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">How does Charter pricing work?</button></h2>
+            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body text-muted text-sm">Charter costs are transparent: base vehicle fee + (per-km rate × distance) + optional add-ons + 5% GST. Zero surprise tolls or hidden charges.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contact Form -->
+    <div class="col-lg-7">
+      <div class="be-card p-4 p-md-5 shadow-soft" style="border-radius:1.5rem;">
+        <h3 class="text-2xl font-extrabold mb-1">Send Us a Direct Message</h3>
+        <p class="text-xs text-muted mb-4">Our supervisor will review your inquiry and follow up promptly.</p>
+        <form id="support-form" class="d-flex flex-column gap-3">
+          <div class="row g-3">
+            <div class="col-sm-6"><label class="label-be font-semibold">Your Name</label><input class="input-be mt-1" placeholder="Priya Sharma" required></div>
+            <div class="col-sm-6"><label class="label-be font-semibold">Email Address</label><input class="input-be mt-1" type="email" placeholder="you@example.com" required></div>
+          </div>
+          <div><label class="label-be font-semibold">PNR / Booking ID (Optional)</label><input class="input-be mt-1 font-mono text-uppercase" placeholder="BE12345678"></div>
+          <div><label class="label-be font-semibold">Your Message / Query</label><textarea class="textarea-be mt-1" rows="4" placeholder="How can our support team assist you today?" required></textarea></div>
+          <button type="submit" class="btn-be btn-primary-grad btn-lg-be w-100 shadow-elegant" style="font-weight:700;">Send Support Message →</button>
+        </form>
+        <div class="row g-3 text-center pt-4 mt-4 border-t-be">
+          <div class="col-4 text-xs"><div class="text-primary mb-1" style="font-size:1.25rem;">🛡️</div><div class="font-bold">100% Encrypted</div></div>
+          <div class="col-4 text-xs"><div class="text-primary mb-1" style="font-size:1.25rem;">💸</div><div class="font-bold">Fast Refunds</div></div>
+          <div class="col-4 text-xs"><div class="text-primary mb-1" style="font-size:1.25rem;">📍</div><div class="font-bold">GPS Monitored</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.getElementById('support-form').addEventListener('submit', e=>{
+    e.preventDefault();
+    toast.success("Thank you! Your ticket has been logged. We'll reply within 2 hours.");
+    e.target.reset();
+  });
+</script>
+{% endblock %}

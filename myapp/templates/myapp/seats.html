@@ -1,0 +1,244 @@
+{% extends 'myapp/base.html' %}
+{% load static %}
+
+{% block title %}Select Seats · BusEase{% endblock %}
+{% block page_id %}seats{% endblock %}
+
+{% block content %}
+
+<section class="container py-4">
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="be-card p-4 mb-3 shadow-sm" style="border-radius:1.25rem;">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <h5 class="font-extrabold text-xl m-0 d-flex align-items-center gap-2">
+              <span class="be-logo-icon size-8" style="color:#fff;">🚌</span>
+              <span id="sb-name">—</span>
+            </h5>
+            <div class="text-sm text-muted mt-1" id="sb-meta">—</div>
+          </div>
+          <div class="text-end">
+            <div class="text-xs text-muted uppercase font-mono tracking-widest">Departs at</div>
+            <div class="font-extrabold font-mono text-2xl text-gradient" id="sb-dep">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="be-card p-4 shadow-soft" style="border-radius:1.5rem;">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <div>
+            <h6 class="font-bold text-lg m-0">Interactive Bus Seat Layout</h6>
+            <div class="text-xs text-muted">Click any available seat to select (Max 6 seats)</div>
+          </div>
+          <div class="text-xs font-mono font-semibold text-primary" id="sb-sel-count">0 seats selected</div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-3 text-xs mb-4 p-3 rounded-xl bg-muted" id="sb-legend"></div>
+
+        <!-- Bus Cabin Visual -->
+        <div class="mx-auto border-dashed-be rounded-3xl overflow-hidden shadow-sm" style="max-width:25rem; background:hsl(var(--card));">
+          <!-- Driver Cockpit -->
+          <div class="seat-cockpit-bar">
+            <div class="d-flex align-items-center gap-2 text-xs font-mono text-muted">
+              <span>🚪 Front Door</span>
+            </div>
+            <div class="d-flex align-items-center gap-1 text-xs font-bold text-muted">
+              <span>DRIVER</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="M12 12v9"/></svg>
+            </div>
+          </div>
+
+          <!-- Seats Grid -->
+          <div class="p-4" style="background:hsl(var(--muted) / .25);">
+            <div id="sb-grid" class="d-flex flex-column gap-2"></div>
+          </div>
+
+          <!-- Rear Lounge -->
+          <div class="text-center py-2 text-xs font-mono text-muted border-t-be" style="background:hsl(var(--muted) / .5);">
+            BACK OF BUS
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Booking Summary Sidebar -->
+    <aside class="col-lg-4">
+      <div class="be-card p-4 sticky-top shadow-soft" style="border-radius:1.5rem; top:5.5rem;">
+        <h6 class="font-bold text-lg mb-3">Booking Summary</h6>
+        <div id="sb-summary"></div>
+
+        <div class="mt-3">
+          <div class="text-xs text-muted font-mono uppercase mb-1">Selected Seats:</div>
+          <div id="sb-selected-chips" class="d-flex flex-wrap gap-1">
+            <span class="text-xs text-muted">No seat picked yet</span>
+          </div>
+        </div>
+
+        <hr class="border-t-be my-3">
+        <div class="d-flex justify-content-between align-items-baseline font-extrabold text-xl">
+          <span>Total Fare</span>
+          <span class="text-3xl text-gradient" id="sb-total">₹0</span>
+        </div>
+        <button id="sb-go" class="btn-be btn-primary-grad w-100 mt-3 shadow-elegant" style="height:3.25rem; font-size:1.05rem;" disabled>
+          Proceed to Checkout →
+        </button>
+        <div class="p-2 mt-3 rounded-xl text-center text-xs text-muted" style="background:hsl(var(--muted) / .5);">
+          🛡 Free cancellation available up to 4 hours before departure
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', ()=>{
+  const from = BE.qs('from','Mumbai'), to = BE.qs('to','Pune'), date = BE.qs('date',''), busId = BE.qs('busId','');
+  const bus = {{ bus_json|safe }};
+  const dbBookedSeats = {{ booked_seats|safe }};
+
+  const total = bus.totalSeats || 40;
+  const seats = [];
+  const booked = new Set();
+  const ladies = new Set();
+  const premium = new Set();
+
+  const rows = Math.ceil(total/4);
+  let idx = 0;
+  for (let r=1; r<=rows; r++){
+    for (const c of ['A','B','C','D']){
+      if (seats.length < total){
+        const s = r + c;
+        seats.push(s);
+        if ((idx*7 + bus.id.length) % 5 === 0) booked.add(s);
+        else if (idx % 11 === 3) ladies.add(s);
+        else if (r <= 2) premium.add(s);
+        idx++;
+      }
+    }
+  }
+
+  // Real booked seats from database
+  if (dbBookedSeats && Array.isArray(dbBookedSeats)) {
+    dbBookedSeats.forEach(s => {
+      booked.add(s);
+      ladies.delete(s);
+    });
+  }
+
+  let selected = [];
+  const seatPrice = s => premium.has(s) ? bus.price + 150 : bus.price;
+  const sumTotal = () => selected.reduce((a,s)=> a + seatPrice(s), 0);
+
+  document.getElementById('sb-name').textContent = bus.name;
+  document.getElementById('sb-meta').textContent = bus.type + ' · ' + from + ' → ' + to + ' · ' + (date || 'Today');
+  document.getElementById('sb-dep').textContent = bus.departure;
+
+  document.getElementById('sb-legend').innerHTML = [
+    ['Available', 'background:hsl(var(--card));border:2px solid hsl(var(--border));'],
+    ['Selected', 'background:var(--gradient-primary);'],
+    ['Booked', 'background:hsl(var(--muted));border:1px solid transparent;opacity:.65;'],
+    ['Ladies Only', 'background:rgba(244,114,182,.15);border:2px solid #f472b6;'],
+    ['Premium (+₹150)', 'background:rgba(251,191,36,.15);border:2px solid #fbbf24;']
+  ].map(([t,s])=>`<span class="d-inline-flex align-items-center gap-1.5"><span style="display:inline-block;width:1.25rem;height:.85rem;border-radius:.3rem;${s}"></span><span class="text-fg font-medium">${t}</span></span>`).join('');
+
+  function seatBtn(s){
+    if (!s) return '<div></div>';
+    const isBooked = booked.has(s), isSel = selected.includes(s), isLady = ladies.has(s), isPrem = premium.has(s);
+    let extraStyle = '';
+    let category = 'Standard Seat';
+
+    if (isBooked) {
+      extraStyle = 'background:hsl(var(--muted));color:hsl(var(--muted-foreground));cursor:not-allowed;opacity:.65;';
+      category = 'Already Booked';
+    } else if (isSel) {
+      extraStyle = 'background:var(--gradient-primary);color:hsl(var(--primary-foreground));transform:scale(1.08);box-shadow:var(--shadow-elegant);border-color:transparent;';
+    } else if (isLady) {
+      extraStyle = 'border:2px solid #f472b6;background:rgba(244,114,182,.15);color:#be185d;';
+      category = 'Ladies-Only Seat';
+    } else if (isPrem) {
+      extraStyle = 'border:2px solid #fbbf24;background:rgba(251,191,36,.15);color:#92400e;';
+      category = 'Premium Seat (+₹150)';
+    } else {
+      extraStyle = 'border:2px solid hsl(var(--border));background:hsl(var(--card));';
+    }
+
+    const titleText = `${s} · ${category} · ₹${seatPrice(s)}`;
+    return `<button ${isBooked?'disabled':''} data-seat="${s}" title="${titleText}" class="seat-btn w-100 position-relative rounded-lg font-bold text-xs" style="${extraStyle}">
+      ${isPrem && !isBooked ? '<span style="position:absolute;top:-.45rem;right:-.4rem;font-size:.65rem;">👑</span>':''}
+      ${isLady && !isBooked ? '<span style="position:absolute;top:-.45rem;right:-.4rem;font-size:.65rem;">💗</span>':''}
+      ${s}
+    </button>`;
+  }
+
+  function paint(){
+    const grid = document.getElementById('sb-grid');
+    let html = '';
+    for (let r=0; r<rows; r++){
+      const row = seats.slice(r*4, r*4+4);
+      html += `<div class="d-grid align-items-center" style="grid-template-columns:1fr 1fr 28px 1fr 1fr; gap:.5rem;">
+        ${seatBtn(row[0])}
+        ${seatBtn(row[1])}
+        <div class="text-center font-mono text-xs text-muted" style="opacity:.4;">·</div>
+        ${seatBtn(row[2])}
+        ${seatBtn(row[3])}
+      </div>`;
+    }
+    grid.innerHTML = html;
+    grid.querySelectorAll('button[data-seat]').forEach(b => b.addEventListener('click', ()=>toggle(b.dataset.seat)));
+
+    const t = sumTotal();
+    document.getElementById('sb-sel-count').textContent = selected.length + ' / 6 seats chosen';
+
+    document.getElementById('sb-summary').innerHTML = [
+      ['Operator', bus.name],
+      ['Bus Type', bus.type],
+      ['Journey Date', date || 'Today'],
+      ['Route', from + ' → ' + to],
+      ['Base Fare', '₹' + bus.price + ' / seat']
+    ].map(([k,v])=>`<div class="d-flex justify-content-between text-sm py-1.5"><span class="text-muted">${k}</span><span class="font-semibold text-fg">${v}</span></div>`).join('');
+
+    const chipsEl = document.getElementById('sb-selected-chips');
+    if (!selected.length) {
+      chipsEl.innerHTML = '<span class="text-xs text-muted">No seat picked yet</span>';
+    } else {
+      chipsEl.innerHTML = selected.map(s => `
+        <span class="badge rounded-pill bg-primary text-white d-inline-flex align-items-center gap-1 font-mono p-1 px-2" style="cursor:pointer;" onclick="toggle('${s}')">
+          ${s} (₹${seatPrice(s)}) <span style="font-size:.7rem;">✕</span>
+        </span>`).join('');
+    }
+
+    document.getElementById('sb-total').textContent = '₹' + t;
+    const go = document.getElementById('sb-go');
+    go.disabled = !selected.length;
+    go.onclick = ()=> {
+      if (!selected.length) return;
+      location.href = '/booking/?busId=' + encodeURIComponent(bus.id) +
+        '&from=' + encodeURIComponent(from) +
+        '&to=' + encodeURIComponent(to) +
+        '&date=' + encodeURIComponent(date) +
+        '&seats=' + encodeURIComponent(selected.join(',')) +
+        '&total=' + t;
+    };
+  }
+
+  window.toggle = function(s){
+    if (booked.has(s)) return;
+    if (selected.includes(s)) {
+      selected = selected.filter(x=>x!==s);
+    } else if (selected.length >= 6) {
+      return toast.error('Maximum 6 seats allowed per booking');
+    } else {
+      selected.push(s);
+      toast.success(`Seat ${s} added (₹${seatPrice(s)})`);
+    }
+    paint();
+  };
+
+  paint();
+});
+</script>
+{% endblock %}

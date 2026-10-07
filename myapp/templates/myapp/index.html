@@ -1,0 +1,318 @@
+{% extends 'myapp/base.html' %}
+{% load static %}
+
+{% block title %}Bus Booking, Charter & Offers · BusEase{% endblock %}
+{% block page_id %}index{% endblock %}
+
+{% block content %}
+
+<!-- HERO SECTION -->
+<section style="position:relative; overflow:hidden;">
+  <div style="position:absolute; inset:0;" class="bg-gradient-hero"></div>
+  <div style="position:absolute; inset:0; background-image:url('{% static 'myapp/assets/img/hero-bus.jpg' %}');" class="bg-overlay-image"></div>
+  <div style="position:absolute; inset:0;" class="bg-mesh"></div>
+  <div style="position:absolute; inset:0; opacity:.07;" class="grid-pattern"></div>
+
+  <div class="container py-5 position-relative" style="padding-top:4rem !important; padding-bottom:9.5rem !important;">
+    <div class="row g-4 g-xl-5 align-items-center">
+      <div class="col-lg-5 col-xl-5 animate-fade-up">
+        <div class="hero-glass-card shadow-2xl">
+          <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-3" style="background:rgba(255,255,255,.14); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.3); color:#fff; font-size:.85rem;">
+            <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981;" class="animate-pulse-glow"></span>
+            <span class="font-semibold">India's #1 Bus Booking Experience</span>
+          </div>
+          <h1 class="text-white font-extrabold tracking-tight mb-3" style="font-size:clamp(2.2rem, 3.8vw, 3.5rem); line-height:1.12;">
+            Travel India with<br>
+            <span class="text-gradient-animated">effortless ease.</span>
+          </h1>
+          <p class="mt-2 mb-0" style="color:rgba(255,255,255,.94); font-weight:400; line-height:1.65; font-size:1.02rem;">
+            Book premium sleeper & seater buses across 100+ cities, charter private fleet by the kilometre, and enjoy real-time GPS tracking with verified offers.
+          </p>
+
+          <!-- Quick Route Chips -->
+          <div class="mt-4 pt-1">
+            <div class="text-xs uppercase text-white font-mono mb-2" style="opacity:.85; letter-spacing:.08em; font-weight:700;">⚡ Popular Quick Searches:</div>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="btn-be py-1 px-3 text-xs quick-route-chip" data-from="Mumbai" data-to="Pune" style="background:rgba(255,255,255,.18); backdrop-filter:blur(6px); color:#fff; border:1px solid rgba(255,255,255,.32); border-radius:999px;">
+                Mumbai ⇄ Pune
+              </button>
+              <button type="button" class="btn-be py-1 px-3 text-xs quick-route-chip" data-from="Delhi" data-to="Jaipur" style="background:rgba(255,255,255,.18); backdrop-filter:blur(6px); color:#fff; border:1px solid rgba(255,255,255,.32); border-radius:999px;">
+                Delhi ⇄ Jaipur
+              </button>
+              <button type="button" class="btn-be py-1 px-3 text-xs quick-route-chip" data-from="Bengaluru" data-to="Chennai" style="background:rgba(255,255,255,.18); backdrop-filter:blur(6px); color:#fff; border:1px solid rgba(255,255,255,.32); border-radius:999px;">
+                Bengaluru ⇄ Chennai
+              </button>
+            </div>
+          </div>
+
+          <div class="d-flex gap-4 mt-4 pt-3" style="border-top:1px solid rgba(255,255,255,0.18);">
+            <div><div class="font-extrabold text-white font-mono" style="font-size:1.85rem; line-height:1.2;">10M+</div><div class="text-xs font-semibold" style="color:rgba(255,255,255,.82);">Happy Riders</div></div>
+            <div><div class="font-extrabold text-white font-mono" style="font-size:1.85rem; line-height:1.2;">2,500+</div><div class="text-xs font-semibold" style="color:rgba(255,255,255,.82);">Operators</div></div>
+            <div><div class="font-extrabold text-white font-mono" style="font-size:1.85rem; line-height:1.2;">100+</div><div class="text-xs font-semibold" style="color:rgba(255,255,255,.82);">Cities Covered</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-7 col-xl-7 animate-fade-up" style="animation-delay:.12s;">
+        <div id="be-search-host"></div>
+
+        <div class="row g-3 mt-2">
+          <div class="col-4">
+            <a href="/offers/" class="quick-feature-card text-center p-3 d-block text-decoration-none">
+              <div class="feat-icon mb-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+              </div>
+              <div class="feat-title">Active Offers</div>
+              <div class="feat-sub">Up to 50% Off</div>
+            </a>
+          </div>
+          <div class="col-4">
+            <a href="/advance/" class="quick-feature-card text-center p-3 d-block text-decoration-none">
+              <div class="feat-icon mb-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              </div>
+              <div class="feat-title">30-Day Plan</div>
+              <div class="feat-sub">Save 30% Ahead</div>
+            </a>
+          </div>
+          <div class="col-4">
+            <a href="/charter/" class="quick-feature-card text-center p-3 d-block text-decoration-none">
+              <div class="feat-icon mb-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+              </div>
+              <div class="feat-title">Charter Bus</div>
+              <div class="feat-sub">Per Km Pricing</div>
+            </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+  <div style="position:absolute;bottom:0;left:0;right:0;height:6rem;background:linear-gradient(to bottom,transparent,hsl(var(--background)));"></div>
+</section>
+
+<!-- OFFERS STRIP -->
+<section class="container position-relative" style="margin-top:-4.5rem; z-index:5;">
+  <div class="be-card shadow-soft p-4" style="border-radius:1.5rem;">
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+      <h3 class="font-bold text-xl m-0 d-flex align-items-center gap-2">
+        <span class="text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span>
+        Today's Hottest Discounts & Coupons
+      </h3>
+      <a href="/offers/" class="text-sm font-semibold text-primary d-inline-flex align-items-center gap-1 hover-lift">
+        Explore all offers <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+    </div>
+    <div class="row g-3" id="be-offers-strip"></div>
+  </div>
+</section>
+
+<!-- POPULAR ROUTES -->
+<section class="container py-5" style="padding-top:5rem !important; padding-bottom:5rem !important;">
+  <div class="d-flex align-items-end justify-content-between mb-4 flex-wrap gap-2">
+    <div>
+      <div class="text-xs font-mono text-primary mb-1 uppercase tracking-widest">// FREQUENTLY TRAVELLED CORRIDORS</div>
+      <h2 class="text-4xl font-extrabold m-0">Popular Bus Routes</h2>
+    </div>
+    <span class="text-primary d-none d-md-inline">
+      <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+    </span>
+  </div>
+  <div class="row g-3" id="be-popular-routes"></div>
+</section>
+
+<!-- WHY US -->
+<section class="border-t-be border-b-be py-5" style="background:hsl(var(--muted) / .35); padding-top:5rem !important; padding-bottom:5rem !important;">
+  <div class="container">
+    <div class="text-center mx-auto mb-5" style="max-width:38rem;">
+      <div class="text-xs font-mono text-primary mb-1 uppercase tracking-widest">// WHY CHOOSE BUSEASE</div>
+      <h2 class="text-4xl font-extrabold">Built for travellers, obsessed with precision.</h2>
+    </div>
+    <div class="row g-3">
+      <div class="col-md-6 col-lg-3">
+        <div class="be-card p-4 h-100 hover-lift transition-all" style="border-radius:1.25rem;">
+          <div class="size-12 rounded-xl mb-3 grid-place shadow-elegant" style="background:var(--gradient-primary); color:hsl(var(--primary-foreground)); font-size:1.4rem;">
+            🛡️
+          </div>
+          <h6 class="font-bold text-lg m-0">Bank-Grade Secure</h6>
+          <p class="text-sm text-muted mb-0 mt-1">256-bit SSL encrypted checkout with UPI, Cards & NetBanking.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="be-card p-4 h-100 hover-lift transition-all" style="border-radius:1.25rem;">
+          <div class="size-12 rounded-xl mb-3 grid-place shadow-elegant" style="background:var(--gradient-primary); color:hsl(var(--primary-foreground)); font-size:1.4rem;">
+            ⚡
+          </div>
+          <h6 class="font-bold text-lg m-0">Instant E-Ticket</h6>
+          <p class="text-sm text-muted mb-0 mt-1">Confirmed ticket with verifiable PNR in your inbox in 10 seconds.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="be-card p-4 h-100 hover-lift transition-all" style="border-radius:1.25rem;">
+          <div class="size-12 rounded-xl mb-3 grid-place shadow-elegant" style="background:var(--gradient-primary); color:hsl(var(--primary-foreground)); font-size:1.4rem;">
+            🏷️
+          </div>
+          <h6 class="font-bold text-lg m-0">Lowest Price Guarantee</h6>
+          <p class="text-sm text-muted mb-0 mt-1">Direct tie-ups with verified operators ensure genuine lowest fares.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="be-card p-4 h-100 hover-lift transition-all" style="border-radius:1.25rem;">
+          <div class="size-12 rounded-xl mb-3 grid-place shadow-elegant" style="background:var(--gradient-primary); color:hsl(var(--primary-foreground)); font-size:1.4rem;">
+            📍
+          </div>
+          <h6 class="font-bold text-lg m-0">Live GPS Bus Tracker</h6>
+          <p class="text-sm text-muted mb-0 mt-1">Real-time highway location tracking & ETA updates directly on your phone.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CHARTER PROMO -->
+<section class="container py-5" style="padding-top:5rem !important; padding-bottom:5rem !important;">
+  <div class="position-relative bg-gradient-hero rounded-3xl text-white overflow-hidden p-5 shadow-elegant">
+    <div style="position:absolute; inset:0; opacity:.6;" class="bg-mesh"></div>
+    <div class="row position-relative align-items-center g-4">
+      <div class="col-md-7">
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-3" style="background:rgba(255,255,255,.12); backdrop-filter:blur(8px); font-size:.75rem; font-weight:700;">
+          <span style="font-size:1rem;">🚐</span> <span>PRIVATE BUS CHARTER FOR EVENTS</span>
+        </div>
+        <h2 class="text-5xl font-extrabold" style="line-height:1.1;">Rent the <span class="text-gradient">entire bus.</span></h2>
+        <p class="text-lg mt-3" style="color:rgba(255,255,255,.88);">Destination weddings, corporate offsites, college getaways. Pick from 18 to 45 seaters, customize your stops, pay transparently by the km.</p>
+        <a href="/charter/" class="btn-be btn-lg-be mt-3 hover-lift" style="background:#fff; color:hsl(var(--foreground)); font-weight:700;">
+          Build a Charter Quote →
+        </a>
+      </div>
+      <div class="col-md-5 d-none d-md-block text-center">
+        <span class="animate-float-slow d-inline-block" style="color:rgba(255,255,255,.85);">
+          <svg xmlns="http://www.w3.org/2000/svg" width="190" height="190" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/><circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/></svg>
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="container py-5" style="padding-top:4rem !important; padding-bottom:5rem !important;">
+  <div class="text-center mb-5">
+    <div class="text-xs font-mono text-primary mb-1 uppercase tracking-widest">// PASSENGER REVIEWS</div>
+    <h2 class="text-4xl font-extrabold">Loved by 10 Million Indian Travellers</h2>
+  </div>
+  <div class="row g-4">
+    <div class="col-md-4">
+      <div class="be-card p-4 h-100 hover-lift transition-all" style="border-radius:1.25rem;">
+        <div class="d-flex gap-1 mb-2" style="color:#f59e0b;">
+          ★ ★ ★ ★ ★
+        </div>
+        <p class="m-0 text-fg" style="line-height:1.6;">"Booked Mumbai → Pune in 30 seconds. The seat selection layout is by far the smoothest and fastest I've experienced."</p>
+        <div class="border-t-be d-flex align-items-center gap-3 pt-3 mt-3">
+          <div class="size-10 rounded-pill grid-place font-bold" style="background:var(--gradient-primary); color:hsl(var(--primary-foreground));">P</div>
+          <div><div class="font-bold text-sm">Priya Sharma</div><div class="text-xs text-muted">Daily Commuter · Verified</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="be-card p-4 h-100 hover-lift transition-all" style="border-radius:1.25rem;">
+        <div class="d-flex gap-1 mb-2" style="color:#f59e0b;">
+          ★ ★ ★ ★ ★
+        </div>
+        <p class="m-0 text-fg" style="line-height:1.6;">"Chartered 2 Volvos for a wedding in Jaipur — crystal-clear kilometre pricing, zero hidden charges. Highly recommended!"</p>
+        <div class="border-t-be d-flex align-items-center gap-3 pt-3 mt-3">
+          <div class="size-10 rounded-pill grid-place font-bold" style="background:var(--gradient-primary); color:hsl(var(--primary-foreground));">R</div>
+          <div><div class="font-bold text-sm">Rahul Mehta</div><div class="text-xs text-muted">Event Planner · Verified</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="be-card p-4 h-100 hover-lift transition-all" style="border-radius:1.25rem;">
+        <div class="d-flex gap-1 mb-2" style="color:#f59e0b;">
+          ★ ★ ★ ★ ★
+        </div>
+        <p class="m-0 text-fg" style="line-height:1.6;">"The women-only seat filter and dedicated safety features made my solo journey to Bengaluru worry-free and super comfortable."</p>
+        <div class="border-t-be d-flex align-items-center gap-3 pt-3 mt-3">
+          <div class="size-10 rounded-pill grid-place font-bold" style="background:var(--gradient-primary); color:hsl(var(--primary-foreground));">A</div>
+          <div><div class="font-bold text-sm">Anita Krishnan</div><div class="text-xs text-muted">Solo Explorer · Verified</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'myapp/assets/js/search-form.js' %}?v=3.1"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', ()=>{
+    renderSearchForm(document.getElementById('be-search-host'));
+
+    // Quick route chip buttons listener
+    document.querySelectorAll('.quick-route-chip').forEach(btn => {
+      btn.addEventListener('click', ()=>{
+        const fromInput = document.getElementById('bsf-from');
+        const toInput = document.getElementById('bsf-to');
+        if (fromInput && toInput) {
+          fromInput.value = btn.dataset.from;
+          toInput.value = btn.dataset.to;
+          fromInput.classList.add('animate-pulse-glow');
+          toInput.classList.add('animate-pulse-glow');
+          setTimeout(()=>{
+            fromInput.classList.remove('animate-pulse-glow');
+            toInput.classList.remove('animate-pulse-glow');
+          }, 400);
+        }
+      });
+    });
+
+    // Offers strip
+    const off = [
+      {% for o in offers %}
+        { code: "{{ o.code }}", title: "{{ o.title }}", desc: "{{ o.description }}", color: "{{ o.color }}", icon: "{{ o.icon }}", percent: {{ o.percent }}, maxOff: {{ o.max_off }} }{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    ];
+    const offersHost = document.getElementById('be-offers-strip');
+    if (offersHost && off.length) {
+      offersHost.innerHTML = off.map(o => `
+        <div class="col-md-4">
+          <div class="${o.color} text-white p-4 rounded-2xl position-relative overflow-hidden h-100 hover-lift transition-all shadow-soft">
+            <div style="position:absolute; right:-1rem; top:-1rem; font-size:4rem; opacity:.2;">${o.icon}</div>
+            <div class="text-3xl mb-1">${o.icon}</div>
+            <div class="font-extrabold text-lg">${o.title}</div>
+            <div class="text-xs mb-3" style="opacity:.9;">${o.desc}</div>
+            <div class="d-flex align-items-center justify-content-between mt-auto">
+              <span class="px-2 py-1 rounded font-mono font-bold text-xs" style="background:rgba(255,255,255,.22); backdrop-filter:blur(4px);">${o.code}</span>
+              <button type="button" class="btn-be btn-sm" style="background:rgba(255,255,255,.2); color:#fff; border:0; padding:.25rem .6rem; font-size:.75rem; border-radius:.4rem;" onclick="navigator.clipboard.writeText('${o.code}'); toast.success('Coupon ${o.code} copied!');">📋 Copy</button>
+            </div>
+          </div>
+        </div>`).join('');
+    }
+
+    // Popular routes
+    const today = BE.fmtISO(new Date());
+    document.getElementById('be-popular-routes').innerHTML = BE.POPULAR_ROUTES.map(r => `
+      <div class="col-md-6 col-lg-4">
+        <a href="/search/?from=${r.from}&to=${r.to}&date=${today}" class="be-card p-4 d-block transition-all hover-lift" style="text-decoration:none; color:inherit; border-radius:1.25rem;">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <div class="font-bold text-lg">${r.from} <span class="text-primary mx-1">→</span> ${r.to}</div>
+              <div class="text-sm text-muted mt-1">${r.km} km · multiple bus classes</div>
+            </div>
+            <div class="text-end">
+              <div class="text-xs text-muted">From</div>
+              <div class="text-2xl font-extrabold text-gradient">₹${r.price}</div>
+            </div>
+          </div>
+          <div class="border-t-be pt-3 mt-3 d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-1 text-sm" style="color:#f59e0b;">
+              ★ <span class="text-fg font-semibold" style="font-size:.8rem;">4.7 · 15k+ booked</span>
+            </div>
+            <span class="text-primary font-semibold text-xs d-inline-flex align-items-center gap-1">
+              Book Seat <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </span>
+          </div>
+        </a>
+      </div>`).join('');
+  });
+</script>
+{% endblock %}

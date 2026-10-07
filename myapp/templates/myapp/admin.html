@@ -1,0 +1,391 @@
+{% extends 'myapp/base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard · BusEase{% endblock %}
+{% block page_id %}admin{% endblock %}
+
+{% block content %}
+<section id="adm-gate" class="d-flex align-items-center justify-content-center px-3" style="min-height:75vh;">
+  <div class="be-card p-4 p-md-5 shadow-elegant animate-fade-up text-center" style="border-radius:1.5rem; max-width:28rem; width:100%;">
+    <div class="size-16 rounded-2xl mx-auto grid-place mb-3 shadow-elegant" style="background:var(--gradient-primary); color:hsl(var(--primary-foreground)); font-size:1.75rem;">
+      🔒
+    </div>
+    <h1 class="text-2xl font-extrabold mb-1">Administrator Portal</h1>
+    <p class="text-sm text-muted mb-4">Enter security PIN code to manage platform settings.</p>
+    <input id="adm-pin" type="password" placeholder="•••• Security PIN" class="input-be font-mono text-center" style="height:3.25rem; font-size:1.25rem; letter-spacing:.2em;">
+    <div class="p-2 rounded-lg bg-muted text-xs text-muted mt-2 font-mono">
+      Default Access PIN: <strong class="text-primary font-bold">2468</strong>
+    </div>
+    <button id="adm-go" class="btn-be btn-primary-grad w-100 mt-3 shadow-elegant" style="height:3rem; font-weight:700;">
+      Unlock Dashboard →
+    </button>
+  </div>
+</section>
+
+<section id="adm-main" class="container py-4" style="display:none;">
+  <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+    <div>
+      <span class="d-inline-flex align-items-center gap-1 px-3 py-1 rounded-pill text-xs font-semibold mb-2" style="background:rgba(16,185,129,.15); color:#059669;">
+        <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#10b981;"></span>
+        Platform Control Panel
+      </span>
+      <h1 class="text-4xl font-extrabold m-0">Administrator Dashboard</h1>
+      <p class="text-muted m-0">Real-time control over coupons, bus fleet directory, accounts, and live booking logs.</p>
+    </div>
+    <button id="adm-out" class="btn-be btn-outline-be hover-lift">
+      🚪 Exit Admin
+    </button>
+  </div>
+
+  <!-- Real-time Stats Cards -->
+  <div class="row g-3" id="adm-stats"></div>
+
+  <!-- Navigation Tabs -->
+  <ul class="nav nav-tabs mt-4" role="tablist">
+    <li class="nav-item"><button class="nav-link active font-semibold" data-bs-toggle="tab" data-bs-target="#adm-coup">🏷 Promo Coupons</button></li>
+    <li class="nav-item"><button class="nav-link font-semibold" data-bs-toggle="tab" data-bs-target="#adm-bus">🚌 Custom Buses</button></li>
+    <li class="nav-item"><button class="nav-link font-semibold" data-bs-toggle="tab" data-bs-target="#adm-usr">👥 Users Directory</button></li>
+    <li class="nav-item"><button class="nav-link font-semibold" data-bs-toggle="tab" data-bs-target="#adm-bk">🎫 Bookings Ledger</button></li>
+  </ul>
+
+  <div class="tab-content pt-4">
+    <div class="tab-pane fade show active" id="adm-coup"></div>
+    <div class="tab-pane fade" id="adm-bus"></div>
+    <div class="tab-pane fade" id="adm-usr"></div>
+    <div class="tab-pane fade" id="adm-bk"></div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const ADMIN_PIN = '2468';
+
+async function showMain(){
+  document.getElementById('adm-gate').style.display = 'none';
+  document.getElementById('adm-main').style.display = 'block';
+  await refreshDashboard();
+}
+
+async function refreshDashboard() {
+  await Promise.all([paintStats(), paintCoupons(), paintBuses(), paintUsers(), paintBookings()]);
+}
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  if (sessionStorage.getItem('be_admin') === '1') showMain();
+
+  document.getElementById('adm-go').addEventListener('click', ()=>{
+    if (document.getElementById('adm-pin').value === ADMIN_PIN){
+      sessionStorage.setItem('be_admin','1');
+      toast.success('Welcome to Admin Control Center');
+      showMain();
+    } else {
+      toast.error('Invalid PIN code. Hint: 2468');
+    }
+  });
+
+  document.getElementById('adm-pin').addEventListener('keydown', e=>{
+    if (e.key === 'Enter') document.getElementById('adm-go').click();
+  });
+
+  document.getElementById('adm-out').addEventListener('click', ()=>{
+    sessionStorage.removeItem('be_admin');
+    document.getElementById('adm-main').style.display = 'none';
+    document.getElementById('adm-gate').style.display = 'flex';
+    document.getElementById('adm-pin').value = '';
+    toast.info('Logged out from admin panel');
+  });
+});
+
+async function paintStats(){
+  try {
+    const res = await fetch('/api/admin/stats/');
+    const data = await res.json();
+    const stats = [
+      { label:'Total Bookings', value: data.bookings_count, c:'linear-gradient(135deg,#f43f5e,#f97316)', icon:'🎫' },
+      { label:'Active Promo Coupons', value: data.offers_count, c:'linear-gradient(135deg,#8b5cf6,#d946ef)', icon:'🏷️' },
+      { label:'Custom Bus Routes', value: data.custom_buses_count, c:'linear-gradient(135deg,#0ea5e9,#6366f1)', icon:'🚌' },
+      { label:'Registered Accounts', value: data.users_count, c:'linear-gradient(135deg,#10b981,#14b8a6)', icon:'👥' },
+    ];
+    document.getElementById('adm-stats').innerHTML = stats.map(s=>`
+      <div class="col-6 col-md-3">
+        <div class="rounded-2xl p-4 text-white shadow-soft hover-lift transition-all position-relative overflow-hidden" style="background:${s.c};">
+          <div style="position:absolute; right:-.5rem; top:-.5rem; font-size:3.5rem; opacity:.2;">${s.icon}</div>
+          <div class="text-3xl font-extrabold font-mono">${s.value}</div>
+          <div class="text-xs font-semibold mt-1" style="opacity:.95;">${s.label}</div>
+        </div>
+      </div>`).join('');
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+let coup = { code:'', title:'', desc:'', color:'grad-rose-orange', icon:'🎟️', percent:10, maxOff:200 };
+async function paintCoupons(){
+  const host = document.getElementById('adm-coup');
+  try {
+    const res = await fetch('/api/admin/coupons/');
+    const list = await res.json();
+    host.innerHTML = `
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <div class="be-card p-4 shadow-sm" style="border-radius:1.25rem;">
+            <h6 class="font-bold mb-3 d-flex align-items-center gap-2">
+              <span class="text-primary">+</span> Add New Promo Coupon
+            </h6>
+            <div class="d-flex flex-column gap-2">
+              <div><label class="label-be font-semibold">Coupon Code</label><input id="cp-code" class="input-be mt-1 font-mono text-uppercase" placeholder="SAVE25" value="${coup.code}"></div>
+              <div><label class="label-be font-semibold">Headline Title</label><input id="cp-title" class="input-be mt-1" placeholder="25% OFF Ride" value="${coup.title}"></div>
+              <div><label class="label-be font-semibold">Terms Description</label><input id="cp-desc" class="input-be mt-1" placeholder="Valid on all sleeper coaches" value="${coup.desc}"></div>
+              <div class="row g-2">
+                <div class="col-6"><label class="label-be font-semibold">% Discount</label><input id="cp-pct" type="number" class="input-be mt-1" value="${coup.percent}"></div>
+                <div class="col-6"><label class="label-be font-semibold">Max Off (₹)</label><input id="cp-max" type="number" class="input-be mt-1" value="${coup.maxOff}"></div>
+              </div>
+              <div><label class="label-be font-semibold">Badge Icon</label><input id="cp-icon" class="input-be mt-1" value="${coup.icon}"></div>
+              <button id="cp-add" class="btn-be btn-primary-grad w-100 mt-2">Publish Coupon</button>
+              <button id="cp-reset" class="btn-be btn-outline-be w-100">Reset to Defaults</button>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-8">
+          <div class="d-flex flex-column gap-2">
+            ${list.map(o=>`
+              <div class="rounded-2xl p-3 d-flex align-items-center gap-3 text-white ${o.color} shadow-sm hover-lift transition-all">
+                <div style="font-size:2rem;">${o.icon}</div>
+                <div class="flex-grow-1">
+                  <div class="font-bold text-lg">${o.title} <span class="badge bg-black bg-opacity-25 font-mono text-xs ms-2">${o.code}</span></div>
+                  <div class="text-xs" style="opacity:.92;">${o.desc}</div>
+                  <div class="text-xs mt-1 font-mono" style="opacity:.85;">${o.percent}% discount · max cap ₹${o.maxOff}</div>
+                </div>
+                <button data-rm="${o.code}" class="cp-rm btn-be btn-sm" style="background:rgba(255,255,255,.2); color:#fff; border:0;" title="Delete Coupon">🗑 Remove</button>
+              </div>`).join('')}
+          </div>
+        </div>
+      </div>`;
+
+    document.getElementById('cp-add').addEventListener('click', async ()=>{
+      const f = {
+        action: 'add',
+        code: document.getElementById('cp-code').value.trim().toUpperCase(),
+        title: document.getElementById('cp-title').value.trim(),
+        desc: document.getElementById('cp-desc').value.trim(),
+        color: 'grad-rose-orange',
+        icon: document.getElementById('cp-icon').value || '🎟️',
+        percent: +document.getElementById('cp-pct').value,
+        maxOff: +document.getElementById('cp-max').value
+      };
+      if (!f.code || !f.title) return toast.error('Code and Title are required');
+      const resAdd = await fetch('/api/admin/coupons/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(f)
+      });
+      const dataAdd = await resAdd.json();
+      if (dataAdd.success) {
+        toast.success(`Coupon ${f.code} added`);
+        coup = { code:'', title:'', desc:'', color:'grad-rose-orange', icon:'🎟️', percent:10, maxOff:200 };
+        await refreshDashboard();
+      } else {
+        toast.error(dataAdd.error || 'Failed to add coupon');
+      }
+    });
+
+    document.getElementById('cp-reset').addEventListener('click', async ()=>{
+      if (!confirm("Reset all coupons to platform defaults?")) return;
+      const resReset = await fetch('/api/admin/coupons/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reset' })
+      });
+      await resReset.json();
+      toast.success('Coupons reset to default');
+      await refreshDashboard();
+    });
+
+    host.querySelectorAll('.cp-rm').forEach(b => b.addEventListener('click', async ()=>{
+      const resRm = await fetch('/api/admin/coupons/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'remove', code: b.dataset.rm })
+      });
+      await resRm.json();
+      toast.success('Coupon removed');
+      await refreshDashboard();
+    }));
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+let busF = { name:'', type:'AC Sleeper', from:'Mumbai', to:'Pune', price:599, departure:'22:00', arrival:'04:00' };
+async function paintBuses(){
+  const host = document.getElementById('adm-bus');
+  try {
+    const res = await fetch('/api/admin/buses/');
+    const list = await res.json();
+    const cityOpts = BE.CITIES.map(c=>`<option>${c}</option>`).join('');
+    host.innerHTML = `
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <div class="be-card p-4 shadow-sm" style="border-radius:1.25rem;">
+            <h6 class="font-bold mb-3 d-flex align-items-center gap-2">
+              <span class="text-primary">+</span> Add Custom Operator Route
+            </h6>
+            <div class="d-flex flex-column gap-2">
+              <div><label class="label-be font-semibold">Operator Name</label><input id="bs-name" class="input-be mt-1" placeholder="e.g. Royal Travels" value="${busF.name}"></div>
+              <div><label class="label-be font-semibold">Bus Class</label><input id="bs-type" class="input-be mt-1" value="${busF.type}"></div>
+              <div class="row g-2">
+                <div class="col-6"><label class="label-be font-semibold">Origin</label><select id="bs-from" class="select-be mt-1">${cityOpts}</select></div>
+                <div class="col-6"><label class="label-be font-semibold">Destination</label><select id="bs-to" class="select-be mt-1">${cityOpts}</select></div>
+              </div>
+              <div class="row g-2">
+                <div class="col-4"><label class="label-be font-semibold">Fare ₹</label><input id="bs-pr" type="number" class="input-be mt-1" value="${busF.price}"></div>
+                <div class="col-4"><label class="label-be font-semibold">Dep Time</label><input id="bs-dep" class="input-be mt-1 font-mono" value="${busF.departure}"></div>
+                <div class="col-4"><label class="label-be font-semibold">Arr Time</label><input id="bs-arr" class="input-be mt-1 font-mono" value="${busF.arrival}"></div>
+              </div>
+              <button id="bs-add" class="btn-be btn-primary-grad w-100 mt-2">Register Bus</button>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-8">
+          <div class="d-flex flex-column gap-2">
+            ${list.length ? list.map(b=>`
+              <div class="be-card p-3 d-flex align-items-center gap-3 shadow-sm hover-lift transition-all" style="border-radius:1rem;">
+                <div class="size-10 rounded-xl grid-place" style="background:var(--gradient-primary); color:hsl(var(--primary-foreground)); font-size:1.25rem;">🚌</div>
+                <div class="flex-grow-1">
+                  <div class="font-bold text-fg">${b.name} <span class="badge bg-muted text-muted font-normal text-xs ms-1">${b.type}</span></div>
+                  <div class="text-xs text-muted mt-0.5">${b.from} → ${b.to} · ${b.departure}–${b.arrival} · <strong class="text-primary font-mono">₹${b.price}</strong></div>
+                </div>
+                <button data-rm="${b.id}" class="bs-rm btn-be btn-ghost-be text-danger btn-sm" title="Remove bus">🗑 Delete</button>
+              </div>`).join('') : '<div class="text-sm text-muted be-card border-dashed-be p-4 text-center" style="border-radius:1rem;">No custom buses added yet.</div>'}
+          </div>
+        </div>
+      </div>`;
+
+    document.getElementById('bs-from').value = busF.from;
+    document.getElementById('bs-to').value = busF.to;
+
+    document.getElementById('bs-add').addEventListener('click', async ()=>{
+      const f = {
+        action: 'add',
+        name: document.getElementById('bs-name').value.trim(),
+        type: document.getElementById('bs-type').value,
+        from: document.getElementById('bs-from').value,
+        to: document.getElementById('bs-to').value,
+        price: +document.getElementById('bs-pr').value,
+        departure: document.getElementById('bs-dep').value,
+        arrival: document.getElementById('bs-arr').value
+      };
+      if (!f.name) return toast.error('Operator Name is required');
+      const resAdd = await fetch('/api/admin/buses/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(f)
+      });
+      await resAdd.json();
+      toast.success('Bus route added successfully');
+      await refreshDashboard();
+    });
+
+    host.querySelectorAll('.bs-rm').forEach(b => b.addEventListener('click', async ()=>{
+      const resRm = await fetch('/api/admin/buses/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'remove', id: b.dataset.rm })
+      });
+      await resRm.json();
+      toast.success('Bus route deleted');
+      await refreshDashboard();
+    }));
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+async function paintUsers(){
+  try {
+    const res = await fetch('/api/admin/users/');
+    const list = await res.json();
+    document.getElementById('adm-usr').innerHTML = `
+      <div class="be-card overflow-hidden shadow-sm" style="border-radius:1.25rem;">
+        <div class="table-responsive">
+          <table class="table m-0">
+            <thead style="background:hsl(var(--muted) / .6); font-size:.75rem; text-transform:uppercase; letter-spacing:.05em;">
+              <tr><th class="p-3">User Profile</th><th class="p-3">Registered Email</th><th class="p-3 text-end">Account Management</th></tr>
+            </thead>
+            <tbody>
+              ${list.length ? list.map(u=>`
+                <tr class="border-t-be align-middle">
+                  <td class="p-3 font-semibold text-fg">${u.name}</td>
+                  <td class="p-3 text-muted font-mono text-xs">${u.email}</td>
+                  <td class="p-3 text-end">
+                    <button data-rm="${u.email}" class="ur-rm btn-be btn-outline-be btn-sm text-danger" style="font-size:.75rem; padding:.25rem .6rem;">🗑 Delete</button>
+                  </td>
+                </tr>`).join('') : '<tr><td colspan="3" class="p-5 text-center text-muted">No registered users yet.</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+
+    document.querySelectorAll('.ur-rm').forEach(b => b.addEventListener('click', async ()=>{
+      if (!confirm(`Are you sure you want to delete profile for ${b.dataset.rm}?`)) return;
+      const resRm = await fetch('/api/admin/users/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: b.dataset.rm })
+      });
+      await resRm.json();
+      toast.success('User account removed');
+      await refreshDashboard();
+    }));
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+async function paintBookings(){
+  try {
+    const res = await fetch('/api/admin/bookings/');
+    const list = await res.json();
+    document.getElementById('adm-bk').innerHTML = `
+      <div class="be-card overflow-hidden shadow-sm" style="border-radius:1.25rem;">
+        <div class="table-responsive">
+          <table class="table m-0">
+            <thead style="background:hsl(var(--muted) / .6); font-size:.75rem; text-transform:uppercase; letter-spacing:.05em;">
+              <tr>
+                <th class="p-3">PNR</th>
+                <th class="p-3">Passenger</th>
+                <th class="p-3">Route</th>
+                <th class="p-3">Date</th>
+                <th class="p-3 text-end">Amount</th>
+                <th class="p-3 text-end">Live Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${list.length ? list.map(b=>`
+                <tr class="border-t-be align-middle">
+                  <td class="p-3 font-mono font-bold text-xs text-primary">${b.id}</td>
+                  <td class="p-3">
+                    <div class="font-semibold text-fg">${b.passenger.name}</div>
+                    <div class="text-xs text-muted font-mono">${b.passenger.email}</div>
+                  </td>
+                  <td class="p-3 font-medium">${b.from} → ${b.to}</td>
+                  <td class="p-3 text-muted font-mono text-xs">${b.date}</td>
+                  <td class="p-3 text-end font-extrabold font-mono text-fg">₹${b.total}</td>
+                  <td class="p-3 text-end">
+                    <span class="badge rounded-pill ${b.status==='confirmed'?'bg-success-subtle text-success':'bg-danger-subtle text-danger'} font-semibold px-2 py-1">
+                      ${b.status}
+                    </span>
+                  </td>
+                </tr>`).join('') : '<tr><td colspan="6" class="p-5 text-center text-muted">No bookings on record yet.</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+  } catch(e) {
+    console.error(e);
+  }
+}
+</script>
+{% endblock %}

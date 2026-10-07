@@ -1,0 +1,37 @@
+{% extends 'myapp/base.html' %}
+{% load static %}
+
+{% block title %}Route Not Found · 404 · BusEase{% endblock %}
+{% block page_id %}404{% endblock %}
+
+{% block content %}
+<section class="d-flex align-items-center justify-content-center py-5" style="min-height:75vh;">
+  <div class="container text-center animate-fade-up">
+    <div class="size-24 rounded-3xl mx-auto mb-4 grid-place shadow-elegant position-relative" style="background:var(--gradient-primary); color:hsl(var(--primary-foreground)); font-size:3rem; width:5.5rem; height:5.5rem;">
+      🚍
+      <span class="radar-ring"></span>
+    </div>
+
+    <h1 class="text-gradient font-mono font-extrabold" style="font-size:clamp(4.5rem, 10vw, 7rem); line-height:1; letter-spacing:-.04em;">404</h1>
+    <h2 class="text-3xl font-extrabold mt-2 mb-2">Looks like this bus took an unexpected detour.</h2>
+    <p class="text-muted mx-auto mb-4" style="max-width:32rem; line-height:1.6;">
+      The page or route you're looking for doesn't exist or has moved to a new highway terminal. Let's get you back on track!
+    </p>
+
+    <div class="d-flex gap-2 justify-content-center flex-wrap">
+      <a href="/" class="btn-be btn-primary-grad btn-lg-be shadow-elegant" style="font-weight:700;">
+        🏠 Return to Home
+      </a>
+      <a href="/offers/" class="btn-be btn-outline-be btn-lg-be">
+        🎁 View Offers
+      </a>
+      <a href="/track/" class="btn-be btn-outline-be btn-lg-be">
+        📍 Track Bus
+      </a>
+      <a href="/support/" class="btn-be btn-ghost-be btn-lg-be">
+        💬 Contact Support
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}

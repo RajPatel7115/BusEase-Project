@@ -1,0 +1,246 @@
+{% extends 'myapp/base.html' %}
+{% load static %}
+
+{% block title %}Charter a Bus · Private Fleet Rental · BusEase{% endblock %}
+{% block page_id %}charter{% endblock %}
+
+{% block content %}
+
+<section class="position-relative bg-gradient-hero text-white py-5 overflow-hidden" style="padding-top:4.5rem !important; padding-bottom:4.5rem !important;">
+  <div style="position:absolute; inset:0; opacity:.65;" class="bg-mesh"></div>
+  <div class="container position-relative">
+    <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-3" style="background:rgba(255,255,255,.12); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,.2); font-size:.85rem;">
+      <span>🚐</span><span>CHARTER · WHOLE BUS HIRE</span>
+    </div>
+    <h1 class="text-5xl font-extrabold" style="font-size:clamp(2.5rem,5vw,4.25rem); line-height:1.1; max-width:48rem;">
+      Your bus. <span class="text-gradient">Your itinerary.</span> Your rules.
+    </h1>
+    <p class="mt-3 text-lg" style="color:rgba(255,255,255,.88); max-width:38rem;">
+      Weddings, corporate offsites, college road trips, sports teams — select your fleet, adjust distance, and see 100% transparent live pricing.
+    </p>
+  </div>
+</section>
+
+<section class="container position-relative pb-5" style="margin-top:-3rem;">
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="d-flex flex-column gap-3">
+        <!-- Trip Details Card -->
+        <div class="be-card p-4 shadow-soft" style="border-radius:1.5rem;">
+          <h3 class="font-extrabold text-xl mb-3">1. Custom Route & Itinerary</h3>
+          <ul class="nav nav-tabs mb-4" role="tablist">
+            <li class="nav-item"><button type="button" class="nav-link active font-semibold ch-trip" data-trip="oneway">One-way Journey</button></li>
+            <li class="nav-item"><button type="button" class="nav-link font-semibold ch-trip" data-trip="round">Round Trip (Both ways)</button></li>
+            <li class="nav-item"><button type="button" class="nav-link font-semibold ch-trip" data-trip="multi">Multi-Day Vacation Tour</button></li>
+          </ul>
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <label class="label-be tiny font-bold">📍 PICKUP CITY</label>
+              <input id="ch-pickup" class="input-be h-12 mt-1" value="Mumbai" placeholder="Origin city">
+            </div>
+            <div class="col-sm-6">
+              <label class="label-be tiny font-bold">📍 DESTINATION CITY</label>
+              <input id="ch-drop" class="input-be h-12 mt-1" value="Goa" placeholder="Destination city">
+            </div>
+            <div class="col-sm-6">
+              <label class="label-be tiny font-bold">📅 START DATE</label>
+              <input id="ch-date" class="input-be h-12 mt-1" placeholder="Pick start date">
+            </div>
+            <div class="col-sm-6" id="ch-days-wrap" style="display:none;">
+              <label class="label-be tiny font-bold">TOUR DURATION: <span id="ch-days-v" class="text-primary font-mono font-bold">1</span> day(s)</label>
+              <input id="ch-days" type="range" min="1" max="14" step="1" value="1" class="form-range mt-3">
+            </div>
+          </div>
+          <div class="mt-4 pt-2 border-t-be">
+            <div class="d-flex align-items-center justify-content-between">
+              <label class="font-bold d-flex align-items-center gap-1">
+                <span>⛽ Estimated Distance:</span>
+                <span class="text-primary font-mono font-extrabold ms-1 text-lg" id="ch-km-v">550</span> km
+              </label>
+              <span class="text-xs text-muted font-mono" id="ch-km-note">one-way route</span>
+            </div>
+            <input id="ch-km" type="range" min="50" max="2000" step="25" value="550" class="form-range mt-2">
+            <div class="d-flex justify-content-between text-xs text-muted mt-1 font-mono"><span>50 km</span><span>500 km</span><span>1000 km</span><span>2000 km</span></div>
+          </div>
+        </div>
+
+        <!-- Choose Fleet -->
+        <div class="be-card p-4 shadow-soft" style="border-radius:1.5rem;">
+          <h3 class="font-extrabold text-xl mb-1">2. Choose Your Bus Fleet</h3>
+          <p class="text-xs text-muted mb-3">All vehicles include commercial permit, verified driver & sanitization.</p>
+          <div class="row g-3" id="ch-fleet"></div>
+        </div>
+
+        <!-- Add-ons -->
+        <div class="be-card p-4 shadow-soft" style="border-radius:1.5rem;">
+          <h3 class="font-extrabold text-xl mb-1">3. Optional Trip Add-ons</h3>
+          <p class="text-xs text-muted mb-3">Customize amenities according to your group preferences.</p>
+          <div class="row g-2" id="ch-extras"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quote Breakdown Sidebar -->
+    <aside class="col-lg-4">
+      <div class="be-card p-4 sticky-top shadow-soft" style="border-radius:1.5rem; top:5.5rem; background:var(--gradient-card);">
+        <h3 class="font-extrabold text-xl m-0">Live Charter Quote</h3>
+        <p class="text-xs text-muted mb-3">Instant price calculation</p>
+        <div id="ch-rows" class="d-flex flex-column gap-2 text-sm"></div>
+        <hr class="border-t-be my-3">
+        <div class="d-flex justify-content-between align-items-baseline">
+          <span class="text-base font-bold">Total Estimated Cost</span>
+          <span class="text-3xl font-extrabold text-gradient" id="ch-total">₹0</span>
+        </div>
+        <div class="text-xs text-muted text-end mt-1 font-mono" id="ch-pp">—</div>
+        <button id="ch-go" class="btn-be btn-primary-grad w-100 mt-3 shadow-elegant" style="height:3.25rem; font-weight:700;">
+          Reserve This Bus Now →
+        </button>
+        <p class="text-xs text-muted text-center mt-2 mb-0" style="font-size:.6875rem;">
+          🛡️ Free cancellation up to 48 hours before pickup
+        </p>
+        <hr class="border-t-be mt-3 mb-2">
+        <div class="text-xs font-bold text-muted uppercase tracking-widest mb-2">Fleet Amenities Included</div>
+        <div id="ch-feats" class="d-flex flex-column gap-1.5 text-sm"></div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', ()=>{
+  const extras = [
+    {id:'driver', label:'Relief Co-Driver (Long Haul)', price:1500},
+    {id:'decor', label:'Custom Wedding / Event Ribbons', price:3500},
+    {id:'meals', label:'Mineral Water & Onboard Snacks', price:2200},
+    {id:'host', label:'Tour Coordinator / Concierge', price:2800},
+  ];
+  const state = { trip:'oneway', km:550, days:1, fleet:BE.BUS_FLEET[1].id, extras:[], date:null };
+
+  attachCitySuggest(document.getElementById('ch-pickup'));
+  attachCitySuggest(document.getElementById('ch-drop'));
+
+  const defaultStartDate = BE.addDays(new Date(), 7);
+  flatpickr('#ch-date', {
+    minDate: 'today',
+    defaultDate: defaultStartDate,
+    dateFormat: 'Y-m-d',
+    altInput: true,
+    altFormat: 'F j, Y',
+    onChange: ([d])=> {
+      state.date = d;
+      paint();
+    }
+  });
+  state.date = defaultStartDate;
+
+  document.querySelectorAll('.ch-trip').forEach(b => b.addEventListener('click', ()=>{
+    document.querySelectorAll('.ch-trip').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    state.trip = b.dataset.trip;
+    document.getElementById('ch-days-wrap').style.display = state.trip === 'multi' ? 'block' : 'none';
+    paint();
+  }));
+
+  document.getElementById('ch-km').addEventListener('input', e=>{
+    state.km = +e.target.value;
+    paint();
+  });
+  document.getElementById('ch-days').addEventListener('input', e=>{
+    state.days = +e.target.value;
+    document.getElementById('ch-days-v').textContent = e.target.value;
+    paint();
+  });
+
+  function paintFleet(){
+    document.getElementById('ch-fleet').innerHTML = BE.BUS_FLEET.map(f=>{
+      const sel = f.id === state.fleet;
+      return `<div class="col-sm-6">
+        <button type="button" data-fleet="${f.id}" class="ch-flt w-100 text-start p-3 transition-all hover-lift" style="border-radius:1rem; border:2px solid ${sel?'hsl(var(--primary))':'hsl(var(--border))'}; background:${sel?'hsl(var(--primary) / .08)':'hsl(var(--card))'}; ${sel?'box-shadow:var(--shadow-elegant);':''}">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span style="font-size:1.5rem; color:${sel?'hsl(var(--primary))':'hsl(var(--muted-foreground))'};">🚌</span>
+            <span class="text-xs px-2 py-0.5 rounded-pill font-mono font-bold" style="background:hsl(var(--muted));">${f.capacity} seats</span>
+          </div>
+          <div class="font-extrabold text-lg">${f.name}</div>
+          <div class="text-sm text-muted mt-1">₹${f.perKm}/km · ₹${f.base.toLocaleString()} base</div>
+          <div class="d-flex flex-wrap gap-1 mt-2">${f.features.slice(0,3).map(x=>`<span style="font-size:.65rem; background:hsl(var(--muted)); padding:.15rem .45rem; border-radius:.35rem;">${x}</span>`).join('')}</div>
+        </button>
+      </div>`;
+    }).join('');
+
+    document.querySelectorAll('.ch-flt').forEach(b=> b.addEventListener('click', ()=>{
+      state.fleet = b.dataset.fleet;
+      paintFleet();
+      paint();
+    }));
+  }
+
+  function paintExtras(){
+    document.getElementById('ch-extras').innerHTML = extras.map(e=>{
+      const on = state.extras.includes(e.id);
+      return `<div class="col-sm-6">
+        <button type="button" data-x="${e.id}" class="ch-x w-100 text-start p-3 transition-all" style="border-radius:.85rem; border:2px solid ${on?'hsl(var(--primary))':'hsl(var(--border))'}; background:${on?'hsl(var(--primary) / .08)':'hsl(var(--card))'};">
+          <div class="d-flex justify-content-between align-items-center gap-2">
+            <span class="font-semibold text-sm">${e.label}</span>
+            <span class="text-sm font-mono font-bold text-primary">+₹${e.price}</span>
+          </div>
+        </button>
+      </div>`;
+    }).join('');
+
+    document.querySelectorAll('.ch-x').forEach(b=> b.addEventListener('click', ()=>{
+      const id = b.dataset.x;
+      state.extras = state.extras.includes(id) ? state.extras.filter(x=>x!==id) : state.extras.concat(id);
+      paintExtras();
+      paint();
+    }));
+  }
+
+  paintFleet();
+  paintExtras();
+
+  function paint(){
+    const f = BE.BUS_FLEET.find(x=> x.id === state.fleet) || BE.BUS_FLEET[0];
+    const distance = state.km * (state.trip === 'round' ? 2 : 1);
+    const fleetCost = f.base + f.perKm * distance;
+    const dayCost = (state.days - 1) * 4000;
+    const extraCost = state.extras.reduce((s, id)=> s + (extras.find(e=> e.id===id)?.price || 0), 0);
+    const subtotal = fleetCost + dayCost + extraCost;
+    const tax = Math.round(subtotal * 0.05);
+    const total = subtotal + tax;
+
+    document.getElementById('ch-km-v').textContent = state.km;
+    document.getElementById('ch-km-note').textContent = state.trip === 'round' ? 'Total ' + distance + ' km (Round Trip)' : 'One-way distance';
+
+    const rows = [
+      [f.name + ' Base', '₹' + f.base.toLocaleString()],
+      [distance + ' km × ₹' + f.perKm + '/km', '₹' + (f.perKm * distance).toLocaleString()],
+      ...(dayCost > 0 ? [[(state.days - 1) + ' Extra Day(s)', '₹' + dayCost.toLocaleString()]] : []),
+      ...(extraCost > 0 ? [['Add-ons Chosen', '₹' + extraCost.toLocaleString()]] : []),
+      ['Government Tax (5% GST)', '₹' + tax.toLocaleString()]
+    ];
+    document.getElementById('ch-rows').innerHTML = rows.map(([k,v])=>`<div class="d-flex justify-content-between py-0.5"><span class="text-muted">${k}</span><span class="font-semibold font-mono text-fg">${v}</span></div>`).join('');
+    document.getElementById('ch-total').textContent = '₹' + total.toLocaleString();
+    document.getElementById('ch-pp').textContent = '≈ ₹' + Math.round(total / f.capacity) + ' per seat / person';
+    document.getElementById('ch-feats').innerHTML = f.features.map(x=>`<div class="d-flex align-items-center gap-2"><span class="text-primary font-bold">✓</span><span>${x}</span></div>`).join('');
+    return { total, distance, fleet: f };
+  }
+  paint();
+
+  document.getElementById('ch-go').addEventListener('click', ()=>{
+    const p = document.getElementById('ch-pickup').value.trim();
+    const d = document.getElementById('ch-drop').value.trim();
+    if (!p || !d) return toast.error('Please enter pickup and drop cities');
+    const { total, distance, fleet } = paint();
+    location.href = '/booking/?kind=charter&from=' + encodeURIComponent(p) +
+      '&to=' + encodeURIComponent(d) +
+      '&date=' + encodeURIComponent(BE.fmtISO(state.date)) +
+      '&km=' + distance +
+      '&total=' + total +
+      '&fleet=' + encodeURIComponent(fleet.name);
+  });
+});
+</script>
+{% endblock %}

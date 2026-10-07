@@ -157,21 +157,31 @@
     { id:"sleeper", name:"Sleeper Special",    capacity:30, perKm:65, base:7000, features:["AC sleeper berths","Linen","Reading light"] },
   ];
 
+  const toDate = (d)=>{
+    if (!d) return new Date();
+    if (d instanceof Date) return isNaN(d.getTime()) ? new Date() : d;
+    const p = new Date(d);
+    return isNaN(p.getTime()) ? new Date() : p;
+  };
   const qs = (name, def="")=> new URLSearchParams(location.search).get(name) || def;
   const fmtDate = (d)=>{
+    const dt = toDate(d);
     const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-    return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+    return `${months[dt.getMonth()]} ${dt.getDate()}, ${dt.getFullYear()}`;
   };
   const fmtDateLong = (d)=>{
+    const dt = toDate(d);
     const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
     const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-    return `${days[d.getDay()]}, ${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+    return `${days[dt.getDay()]}, ${months[dt.getMonth()]} ${dt.getDate()}, ${dt.getFullYear()}`;
   };
   const fmtISO = (d)=>{
-    const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,"0"), day=String(d.getDate()).padStart(2,"0");
+    if (typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+    const dt = toDate(d);
+    const y=dt.getFullYear(), m=String(dt.getMonth()+1).padStart(2,"0"), day=String(dt.getDate()).padStart(2,"0");
     return `${y}-${m}-${day}`;
   };
-  const addDays = (d, n)=>{ const x=new Date(d); x.setDate(x.getDate()+n); return x; };
+  const addDays = (d, n)=>{ const x=new Date(toDate(d)); x.setDate(x.getDate()+n); return x; };
 
   global.BE = {
     CITIES, generateBuses, Auth, Bookings,

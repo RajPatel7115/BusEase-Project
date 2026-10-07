@@ -1,0 +1,148 @@
+{% extends 'myapp/base.html' %}
+{% load static %}
+
+{% block title %}30-Day Advance Booking · BusEase{% endblock %}
+{% block page_id %}advance{% endblock %}
+
+{% block content %}
+
+<section class="position-relative bg-gradient-hero text-white py-5 overflow-hidden" style="padding-top:4.5rem !important; padding-bottom:4.5rem !important;">
+  <div style="position:absolute; inset:0; opacity:.65;" class="bg-mesh"></div>
+  <div class="container position-relative">
+    <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-3" style="background:rgba(255,255,255,.12); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,.2); font-size:.85rem;">
+      <span>📅</span><span>SMART 30-DAY FARE CALENDAR</span>
+    </div>
+    <h1 class="text-5xl font-extrabold" style="font-size:clamp(2.5rem,5vw,4.25rem); line-height:1.1; max-width:44rem;">
+      Plan a month out. <span class="text-gradient">Pay up to 30% less.</span>
+    </h1>
+    <p class="mt-3 text-lg" style="color:rgba(255,255,255,.88); max-width:38rem;">
+      See the daily dynamic price trend across any Indian corridor. Pick the cheapest travel date and lock in lowest fares with zero booking fees.
+    </p>
+  </div>
+</section>
+
+<section class="container position-relative pb-5" style="margin-top:-3rem;">
+  <div class="be-card shadow-soft p-4 p-md-5" style="border-radius:1.5rem;">
+    <!-- Route Selectors -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <label class="label-be tiny font-bold">ORIGIN CITY</label>
+        <div class="input-icon-wrap mt-1">
+          <span class="icon">📍</span>
+          <input id="adv-from" class="input-be h-12" value="Mumbai" autocomplete="off" placeholder="From city">
+        </div>
+      </div>
+      <div class="col-md-6">
+        <label class="label-be tiny font-bold">DESTINATION CITY</label>
+        <div class="input-icon-wrap mt-1">
+          <span class="icon">📍</span>
+          <input id="adv-to" class="input-be h-12" value="Pune" autocomplete="off" placeholder="To city">
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+      <h3 class="font-bold text-xl m-0 d-flex align-items-center gap-2">
+        <span class="text-primary">📊</span> Dynamic Fare Trend · <span id="adv-route">Mumbai → Pune</span>
+      </h3>
+      <div class="d-flex align-items-center gap-2 text-sm p-2 px-3 rounded-xl bg-muted">
+        <span class="text-muted">Cheapest Day:</span>
+        <span class="font-bold font-mono" style="color:#059669;" id="adv-cheap">—</span>
+      </div>
+    </div>
+
+    <!-- 30-Day Grid -->
+    <div id="adv-grid" class="d-grid" style="grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap:.65rem;"></div>
+
+    <!-- Selected Day Action Banner -->
+    <div class="mt-4 p-4 d-flex flex-wrap align-items-center justify-content-between gap-3 rounded-2xl shadow-soft" style="background:linear-gradient(135deg, hsl(var(--primary) / .12), hsl(var(--primary-glow) / .08)); border:1px solid hsl(var(--primary) / .3);">
+      <div>
+        <div class="text-xs text-muted d-flex align-items-center gap-1 font-mono uppercase">
+          <span>📍 Selected Route:</span> <strong id="adv-route2" class="text-fg">Mumbai → Pune</strong>
+        </div>
+        <div class="text-2xl font-extrabold mt-1" id="adv-sel-date">—</div>
+        <div class="d-flex align-items-center gap-2 text-sm mt-1 font-semibold" style="color:#059669;">
+          <span>📉</span> <span id="adv-savings">—</span>
+        </div>
+      </div>
+      <a id="adv-book" class="btn-be btn-primary-grad btn-lg-be shadow-elegant" style="padding:0 2rem; font-weight:700;" href="#">
+        Book at ₹— →
+      </a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', ()=>{
+    const fromEl = document.getElementById('adv-from');
+    const toEl = document.getElementById('adv-to');
+    attachCitySuggest(fromEl);
+    attachCitySuggest(toEl);
+
+    const today = new Date(); today.setHours(0,0,0,0);
+    const days = Array.from({length:31}, (_,i)=> BE.addDays(today, i));
+    let selected = BE.addDays(today, 14);
+
+    function priceFor(d){
+      const offset = Math.floor((d - today) / 86400000);
+      const base = 850;
+      const earlyDiscount = Math.min(offset * 8, 220);
+      const variance = ((fromEl.value + toEl.value + offset).split('').reduce((a,c)=>a+c.charCodeAt(0),0) % 80) - 40;
+      return Math.max(380, base - earlyDiscount + variance);
+    }
+    function isSameDay(a,b){ return a.toDateString()===b.toDateString(); }
+    function fmtMd(d){ return d.toLocaleDateString('en-US', {month:'short', day:'numeric'}); }
+    function fmtEEE(d){ return d.toLocaleDateString('en-US', {weekday:'short'}); }
+
+    function paint(){
+      const route = (fromEl.value || 'Mumbai') + ' → ' + (toEl.value || 'Pune');
+      document.getElementById('adv-route').textContent = route;
+      document.getElementById('adv-route2').textContent = route;
+
+      let cheapest = days[0];
+      days.forEach(d => { if (priceFor(d) < priceFor(cheapest)) cheapest = d; });
+      document.getElementById('adv-cheap').textContent = fmtMd(cheapest) + ' · ₹' + priceFor(cheapest);
+
+      document.getElementById('adv-grid').innerHTML = days.map((d,i)=>{
+        const p = priceFor(d);
+        const isCheap = isSameDay(d, cheapest);
+        const isSel = isSameDay(d, selected);
+        const style = isSel
+          ? 'background:var(--gradient-primary); color:hsl(var(--primary-foreground)); box-shadow:var(--shadow-elegant); border:2px solid transparent; transform:scale(1.05); z-index:2;'
+          : isCheap
+            ? 'background:rgba(16,185,129,.12); color:#059669; border:2px solid rgba(16,185,129,.3);'
+            : 'background:hsl(var(--card)); border:1px solid hsl(var(--border));';
+
+        return `<button data-i="${i}" class="be-card p-2 text-center d-flex flex-column align-items-center justify-content-between hover-lift transition-all position-relative" style="height:5.8rem; min-width:0; ${style}">
+          <span class="text-xs font-mono" style="color:inherit; opacity:.85;">${fmtEEE(d)}</span>
+          <span class="font-extrabold text-sm mt-1" style="line-height:1;">${d.getDate()}</span>
+          <span class="font-mono font-bold text-xs mt-1" style="color:inherit;">₹${p}</span>
+          ${isCheap ? '<span class="position-absolute badge rounded-pill bg-success text-white font-mono font-bold" style="font-size:.5rem; top:-.4rem; left:50%; transform:translateX(-50%); padding:.15rem .35rem;">LOWEST</span>':''}
+        </button>`;
+      }).join('');
+
+      document.querySelectorAll('#adv-grid button').forEach(b=>{
+        b.addEventListener('click', ()=>{ selected = days[+b.dataset.i]; paint(); });
+      });
+
+      document.getElementById('adv-sel-date').textContent = selected.toLocaleDateString('en-US', {weekday:'long', month:'short', day:'numeric', year:'numeric'});
+      const savings = Math.max(0, priceFor(today) - priceFor(selected));
+      document.getElementById('adv-savings').textContent = savings > 0
+        ? `Save ₹${savings} vs today's last-minute fare`
+        : `Lock in early seat availability`;
+
+      const bk = document.getElementById('adv-book');
+      bk.innerHTML = `Book at ₹${priceFor(selected)} →`;
+      // Bug fix: Added leading slash /search/?...
+      bk.href = `/search/?from=${encodeURIComponent(fromEl.value || 'Mumbai')}&to=${encodeURIComponent(toEl.value || 'Pune')}&date=${BE.fmtISO(selected)}`;
+    }
+
+    fromEl.addEventListener('input', paint);
+    toEl.addEventListener('input', paint);
+    paint();
+  });
+</script>
+{% endblock %}
