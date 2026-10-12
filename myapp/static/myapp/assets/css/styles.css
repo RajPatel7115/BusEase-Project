@@ -404,25 +404,32 @@ html.dark .glass{
 .be-dropdown-item:hover{ background:hsl(var(--muted)); }
 .be-dropdown-sep{ height:1px; background:hsl(var(--border)); margin:.25rem 0; }
 
-/* ----- Autosuggest dropdown with keyboard navigation ----- */
+/* ----- Autosuggest dropdown with keyboard navigation & rich glass aesthetics ----- */
 .be-suggest{
-  position:absolute; top:calc(100% + 6px); left:0; right:0;
-  background:hsl(var(--popover)); color:hsl(var(--popover-foreground));
-  border:1px solid hsl(var(--border)); border-radius:.85rem;
-  box-shadow:0 15px 35px -5px rgba(0,0,0,.15); z-index:50;
-  max-height:16rem; overflow-y:auto;
-  display:none; padding:.35rem;
-  animation: fade-up .18s ease;
+  position:absolute; top:calc(100% + 8px); left:0; right:0;
+  background:hsl(var(--card)); color:hsl(var(--foreground));
+  border:1.5px solid hsl(var(--border)); border-radius:1.15rem;
+  box-shadow:0 30px 60px -10px rgba(0,0,0,0.45), 0 0 0 1px hsl(var(--primary) / 0.25);
+  z-index:9999 !important;
+  max-height:18rem; overflow-y:auto;
+  display:none; padding:.45rem;
+  animation: suggest-pop .18s cubic-bezier(.16, 1, .3, 1);
+}
+@keyframes suggest-pop{
+  from{ opacity:0; transform:translateY(6px) scale(0.98); }
+  to{ opacity:1; transform:translateY(0) scale(1); }
 }
 .be-suggest.show{ display:block; }
 .be-suggest button.suggest-item{
-  display:flex; align-items:center; gap:.6rem;
-  width:100%; padding:.65rem .85rem; background:transparent; border:0;
-  text-align:left; font-size:.875rem; cursor:pointer; color:inherit;
-  border-radius:.5rem; transition: background .12s;
+  display:flex; align-items:center; gap:.75rem;
+  width:100%; padding:.75rem 1rem; background:transparent; border:0;
+  text-align:left; font-size:.92rem; font-weight:600; cursor:pointer; color:inherit;
+  border-radius:.75rem; transition: all .16s ease;
 }
 .be-suggest button.suggest-item:hover, .be-suggest button.suggest-item.active{
-  background:hsl(var(--muted));
+  background:hsl(var(--primary) / 0.12);
+  color:hsl(var(--primary));
+  transform:translateX(4px);
 }
 
 /* ----- Animations ----- */
@@ -756,52 +763,76 @@ select.input-be, select.select-be{
 
 /* Professional Search Box Architecture */
 .search-card-pro {
-  background: hsl(var(--card));
-  border-radius: 1.75rem;
-  box-shadow: 0 25px 60px -15px rgba(0,0,0,0.22), 0 0 0 1px hsl(var(--border) / .6);
-  padding: 1.75rem;
+  background: hsl(var(--card) / 0.94);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border-radius: 2rem;
+  border: 1px solid hsl(var(--border) / 0.8);
+  box-shadow: 0 30px 75px -15px rgba(0,0,0,0.28), 0 0 0 1px rgba(255,255,255,0.08);
+  padding: 1.85rem;
   position: relative;
-  transition: transform .25s ease, box-shadow .25s ease;
+  transition: transform .3s cubic-bezier(.16, 1, .3, 1), box-shadow .3s cubic-bezier(.16, 1, .3, 1), border-color .3s;
+}
+.search-card-pro:hover {
+  box-shadow: 0 35px 85px -18px rgba(0,0,0,0.32), 0 0 0 1.5px hsl(var(--primary) / .28);
 }
 .search-card-pro:focus-within {
-  box-shadow: 0 30px 70px -12px hsl(var(--primary) / .28), 0 0 0 2px hsl(var(--ring));
+  box-shadow: 0 35px 85px -12px hsl(var(--primary) / .32), 0 0 0 2px hsl(var(--ring));
+}
+
+#bsf-tier-1 {
+  position: relative;
+  z-index: 50 !important;
+}
+#bsf-tier-2 {
+  position: relative;
+  z-index: 5 !important;
 }
 
 .search-field-segment {
-  background: hsl(var(--background));
+  background: hsl(var(--background) / 0.9);
   border: 1.5px solid hsl(var(--input));
-  border-radius: 1.1rem;
-  padding: .75rem 1.1rem;
-  transition: all .2s ease;
+  border-radius: 1.25rem;
+  padding: .85rem 1.25rem;
+  transition: all .25s cubic-bezier(.16, 1, .3, 1);
   position: relative;
 }
-.search-field-segment:focus-within {
-  border-color: hsl(var(--ring));
-  box-shadow: 0 0 0 3px hsl(var(--ring) / .2);
+.search-field-segment:hover {
+  border-color: hsl(var(--primary) / .45);
   background: hsl(var(--card));
+  transform: translateY(-1px);
+}
+.search-field-segment:focus-within,
+.search-field-segment.has-suggest {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 4px hsl(var(--primary) / .18);
+  background: hsl(var(--card));
+  transform: translateY(-2px);
+  z-index: 100 !important;
+  position: relative;
 }
 .search-field-segment .seg-label {
   font-size: .72rem;
   font-weight: 800;
-  letter-spacing: .06em;
+  letter-spacing: .08em;
   color: hsl(var(--muted-foreground));
   text-transform: uppercase;
-  margin-bottom: 3px;
+  margin-bottom: 4px;
   display: flex;
   align-items: center;
-  gap: .4rem;
+  gap: .45rem;
 }
 .search-field-segment input.seg-input {
   width: 100%;
   border: 0;
   outline: none;
   background: transparent;
-  font-size: 1.125rem;
+  font-size: 1.15rem;
   font-weight: 700;
   color: hsl(var(--foreground));
   font-family: inherit;
   padding: 0;
-  height: 2rem;
+  height: 2.1rem;
 }
 .search-field-segment input.seg-input::placeholder {
   color: hsl(var(--muted-foreground) / .6);
@@ -810,12 +841,12 @@ select.input-be, select.select-be{
 }
 
 .search-swap-circle {
-  width: 3rem;
-  height: 3rem;
+  width: 3.1rem;
+  height: 3.1rem;
   border-radius: 50%;
   background: hsl(var(--card));
   border: 2px solid hsl(var(--border));
-  box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.14);
   display: grid;
   place-items: center;
   cursor: pointer;
@@ -825,11 +856,11 @@ select.input-be, select.select-be{
 }
 .search-swap-circle:hover {
   border-color: hsl(var(--primary));
-  box-shadow: 0 6px 20px hsl(var(--primary) / .3);
-  transform: scale(1.12);
+  box-shadow: 0 8px 24px hsl(var(--primary) / .35);
+  transform: scale(1.14);
 }
 .search-swap-circle:active {
-  transform: scale(0.94);
+  transform: scale(0.92);
 }
 
 .search-date-btn {
@@ -839,19 +870,23 @@ select.input-be, select.select-be{
   background: transparent;
   text-align: left;
   padding: 0;
-  font-size: 1.1rem;
+  font-size: 1.12rem;
   font-weight: 700;
   color: hsl(var(--foreground));
   display: flex;
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
-  height: 2rem;
+  height: 2.1rem;
+  transition: color .2s;
+}
+.search-date-btn:hover {
+  color: hsl(var(--primary));
 }
 .quick-date-pill {
   font-size: .72rem;
   font-weight: 700;
-  padding: .25rem .75rem;
+  padding: .28rem .8rem;
   border-radius: 999px;
   background: hsl(var(--muted));
   color: hsl(var(--muted-foreground));
@@ -861,16 +896,16 @@ select.input-be, select.select-be{
   user-select: none;
 }
 .quick-date-pill:hover {
-  background: hsl(var(--primary) / .15);
+  background: hsl(var(--primary) / .16);
   color: hsl(var(--primary));
-  border-color: hsl(var(--primary) / .4);
+  border-color: hsl(var(--primary) / .45);
   transform: translateY(-2px);
 }
 .quick-date-pill.active {
   background: var(--gradient-primary);
   color: #fff;
   border-color: transparent;
-  box-shadow: 0 4px 12px hsl(var(--primary) / .35);
+  box-shadow: 0 4px 14px hsl(var(--primary) / .4);
   transform: translateY(-1px);
 }
 
@@ -887,7 +922,7 @@ select.input-be, select.select-be{
 /* Field pulse feedback */
 @keyframes field-pulse-feedback {
   0% { transform: scale(1); }
-  40% { transform: scale(1.025); box-shadow: 0 0 0 4px hsl(var(--primary) / .25); border-color: hsl(var(--primary)); }
+  40% { transform: scale(1.025); box-shadow: 0 0 0 5px hsl(var(--primary) / .3); border-color: hsl(var(--primary)); }
   100% { transform: scale(1); }
 }
 .animate-pulse-glow {
@@ -897,7 +932,7 @@ select.input-be, select.select-be{
 /* Button micro-interactions across the entire application */
 .btn-be {
   position: relative;
-  transition: transform .2s cubic-bezier(.16, 1, .3, 1), box-shadow .2s cubic-bezier(.16, 1, .3, 1), background-color .2s, border-color .2s, color .2s;
+  transition: transform .22s cubic-bezier(.16, 1, .3, 1), box-shadow .22s cubic-bezier(.16, 1, .3, 1), background-color .2s, border-color .2s, color .2s;
 }
 .btn-be:hover {
   transform: translateY(-2px);
@@ -909,15 +944,28 @@ select.input-be, select.select-be{
   position: relative;
   overflow: hidden;
   letter-spacing: .02em;
-  font-size: 1.05rem;
-  box-shadow: 0 10px 25px -4px hsl(6 86% 58% / .45);
+  font-size: 1.1rem;
+  box-shadow: 0 12px 28px -4px hsl(6 86% 58% / .48), 0 0 20px hsl(14 100% 67% / .25);
+  transition: all .28s cubic-bezier(.16, 1, .3, 1);
+}
+.search-submit-btn::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%; width: 50%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+  transform: skewX(-20deg);
+  transition: none;
+}
+.search-submit-btn:hover::after {
+  left: 200%;
+  transition: left 0.75s ease-in-out;
 }
 .search-submit-btn:hover {
-  transform: translateY(-2px) scale(1.015);
-  box-shadow: 0 16px 32px -4px hsl(6 86% 58% / .6), 0 0 20px hsl(14 100% 67% / .3);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 18px 38px -4px hsl(6 86% 58% / .65), 0 0 30px hsl(14 100% 67% / .4);
 }
 .search-submit-btn:hover .search-btn-icon {
-  transform: translateX(4px) scale(1.15);
+  transform: translateX(5px) scale(1.18);
 }
 .search-btn-icon {
   transition: transform .25s cubic-bezier(.34, 1.56, .64, 1);
@@ -957,5 +1005,258 @@ select.input-be, select.select-be{
   transform: scale(1.22) rotate(-8deg);
   color: #fda4af !important;
 }
+
+/* ==========================================================================
+   INTERACTIVE 3D VIRTUAL PAYMENT CARD ANIMATION (Credit / Debit)
+   ========================================================================== */
+.interactive-card-stage {
+  max-width: 430px;
+  margin: 0 auto 1.5rem auto;
+}
+
+.card-3d-scene {
+  width: 100%;
+  height: 236px;
+  perspective: 1100px;
+  user-select: none;
+  cursor: pointer;
+}
+
+.card-3d-box {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  border-radius: 1.35rem;
+  transform-style: preserve-3d;
+  transition: transform 0.68s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+  will-change: transform;
+}
+
+.card-3d-box.is-flipped {
+  transform: rotateY(180deg);
+}
+
+.card-3d-face {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 1.35rem;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+}
+
+/* Front Face Styling */
+.card-3d-front {
+  background: linear-gradient(135deg, #090d16 0%, #1e1b4b 45%, #311042 80%, #0f172a 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.24);
+  box-shadow: 0 22px 48px -12px rgba(0, 0, 0, 0.7), 0 0 35px rgba(99, 102, 241, 0.28);
+  color: #ffffff;
+  padding: 1.45rem 1.6rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transform: rotateY(0deg);
+}
+
+/* Metallic foil sheen on front face */
+.card-foil-shine {
+  position: absolute;
+  inset: -100%;
+  background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.16) 50%, transparent 60%);
+  transform: rotate(25deg);
+  pointer-events: none;
+  animation: cardShineSweep 6s infinite ease-in-out;
+}
+
+@keyframes cardShineSweep {
+  0% { transform: translateY(-80%) rotate(25deg); }
+  35%, 100% { transform: translateY(120%) rotate(25deg); }
+}
+
+/* Realistic Gold Brass EMV Chip */
+.card-emv-chip {
+  width: 44px;
+  height: 32px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #fde68a 0%, #d97706 45%, #f59e0b 80%, #b45309 100%);
+  position: relative;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.7), 0 2px 6px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+.card-emv-chip .chip-line.horizontal {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.35);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+.card-emv-chip .chip-line.vertical {
+  position: absolute;
+  left: 38%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(0, 0, 0, 0.35);
+  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.3);
+}
+
+/* Contactless Waves Icon */
+.card-nfc-icon {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* Card Brand Network Badge */
+.card-brand-badge {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  transition: all .25s ease;
+}
+.card-brand-badge .brand-name {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.15rem;
+  letter-spacing: .06em;
+  line-height: 1;
+  background: linear-gradient(135deg, #ffffff, #c7d2fe);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.card-brand-badge .brand-sub {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: .2em;
+  color: #fbbf24;
+  margin-top: 2px;
+}
+
+/* Formatted Monospace Card Number */
+.card-number-display {
+  font-family: var(--font-mono);
+  font-size: 1.28rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: #f8fafc;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: space-between;
+  margin: 0.85rem 0;
+}
+.card-number-display span {
+  display: inline-block;
+  transition: transform .15s ease;
+}
+
+/* Cardholder & Expiry Labels */
+.card-label {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.65);
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+.card-val {
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+.card-holder-text {
+  text-transform: uppercase;
+}
+
+/* Back Face Styling */
+.card-3d-back {
+  background: linear-gradient(135deg, #090d16 0%, #151a2b 50%, #0d121f 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 22px 48px -12px rgba(0, 0, 0, 0.7);
+  color: #ffffff;
+  transform: rotateY(180deg);
+  display: flex;
+  flex-direction: column;
+}
+
+.card-mag-strip {
+  width: 100%;
+  height: 44px;
+  background: #000000;
+  margin-top: 22px;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.85);
+}
+
+.card-back-body {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0.9rem 1.4rem;
+}
+
+.card-sign-strip {
+  background: rgba(255, 255, 255, 0.92);
+  height: 38px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.25);
+}
+.signature-watermark {
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  color: #94a3b8;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  user-select: none;
+}
+.card-cvv-val {
+  background: #0f172a;
+  color: #38bdf8;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  letter-spacing: 0.18em;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
+}
+
+.card-hologram {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f43f5e, #8b5cf6, #06b6d4, #10b981, #f59e0b);
+  padding: 2px;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
+}
+.card-hologram .holo-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+  border: 1px dashed rgba(255,255,255,0.7);
+}
+
+.card-back-disclaimer {
+  font-size: 0.58rem;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.35;
+}
+
 
 

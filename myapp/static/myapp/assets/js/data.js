@@ -7,36 +7,43 @@
     "Allahabad","Ranchi","Gwalior","Jodhpur","Raipur","Kota","Chandigarh","Mysuru",
     "Coimbatore","Madurai","Kochi","Trivandrum","Goa","Mangalore","Vijayawada"];
 
-  const OPERATORS = ["VRL Travels","SRS Travels","Orange Tours","Neeta Tours","Kallada","Patel Travels","Zingbus","Intrcity SmartBus","RedBus Express","Sharma Travels"];
-  const TYPES = ["AC Sleeper","Non-AC Sleeper","AC Seater","Volvo Multi-Axle","AC Semi-Sleeper","Sleeper + Seater"];
-  const AMENITIES = ["WiFi","Charging Point","Blanket","Water Bottle","Reading Light","Snacks","Live Tracking","Movies"];
+  const TIER_SPECS = [
+    { type: "VIP Ultra Luxury Sleeper", operators: ["Orange Tours VIP Gold", "Intrcity SmartBus VIP", "Neeta Gold Club Suite", "Kallada G4 VIP"], basePrice: 2950, varMax: 500, rating: "4.9", amenities: ["WiFi","Charging Point","Blanket","Snacks","Live Tracking","Movies","Water Bottle"], eco: true },
+    { type: "Royal Executive VIP Volvo", operators: ["RedBus Prime Royal VIP", "Sharma Executive Club", "Orange Tours Platinum VIP"], basePrice: 2650, varMax: 450, rating: "4.8", amenities: ["WiFi","Charging Point","Blanket","Live Tracking","Snacks"], eco: false },
+    { type: "First Class Multi-Axle AC", operators: ["VRL Travels First Class", "Volvo Club One Platinum", "SRS Platinum Executive", "Zingbus Maxx First Class"], basePrice: 2450, varMax: 400, rating: "4.8", amenities: ["WiFi","Charging Point","Blanket","Water Bottle","Reading Light","Snacks"], eco: true },
+    { type: "Volvo Multi-Axle AC", operators: ["VRL Travels", "SRS Travels", "Neeta Tours"], basePrice: 1550, varMax: 250, rating: "4.6", amenities: ["WiFi","Charging Point","Water Bottle","Reading Light"], eco: false },
+    { type: "AC Sleeper", operators: ["Neeta Tours", "Patel Travels", "Zingbus", "Kallada"], basePrice: 1250, varMax: 200, rating: "4.3", amenities: ["Charging Point","Blanket","Water Bottle"], eco: false },
+    { type: "AC Semi-Sleeper", operators: ["Sharma Travels", "Kallada", "Intrcity SmartBus"], basePrice: 950, varMax: 150, rating: "4.2", amenities: ["Charging Point","Reading Light"], eco: false },
+    { type: "Non-AC Sleeper", operators: ["Patel Travels", "Sharma Travels"], basePrice: 780, varMax: 120, rating: "4.0", amenities: ["Reading Light","Water Bottle"], eco: false },
+    { type: "AC Seater", operators: ["RedBus Express", "Zingbus"], basePrice: 620, varMax: 120, rating: "4.2", amenities: ["WiFi","Charging Point"], eco: true }
+  ];
+
   const seed = n => { const x = Math.sin(n)*10000; return x - Math.floor(x); };
 
   function generateBuses(from, to){
     const seedBase = (from+to).split("").reduce((a,c)=>a+c.charCodeAt(0),0);
     const buses = [];
-    for(let i=0;i<8;i++){
-      const r = n => seed(seedBase + i*13 + n);
+    for(let i=0; i<TIER_SPECS.length; i++){
+      const tier = TIER_SPECS[i];
+      const r = n => seed(seedBase + i*17 + n);
       const dep = Math.floor(r(1)*22)+1;
       const dur = 4 + Math.floor(r(2)*10);
       const arr = (dep+dur)%24;
-      const opIdx = Math.floor(r(3)*OPERATORS.length);
-      const tIdx = Math.floor(r(4)*TYPES.length);
-      const price = 400 + Math.floor(r(5)*1600);
-      const rating = (3.8 + r(6)*1.2).toFixed(1);
-      const amen = AMENITIES.filter((_,j)=> r(7+j) > .5).slice(0,4);
+      const opList = tier.operators;
+      const op = opList[Math.floor(r(3)*opList.length)];
+      const price = tier.basePrice + Math.floor(r(5)*tier.varMax);
       buses.push({
         id: `${from}-${to}-${i}`,
-        name: OPERATORS[opIdx],
-        type: TYPES[tIdx],
+        name: op,
+        type: tier.type,
         departure: `${String(dep).padStart(2,"0")}:${r(8)>.5?"30":"00"}`,
         arrival:   `${String(arr).padStart(2,"0")}:${r(9)>.5?"30":"00"}`,
         duration: `${dur}h ${Math.floor(r(10)*60)}m`,
-        price, rating,
+        price, rating: tier.rating,
         seatsAvailable: 5 + Math.floor(r(11)*35),
         totalSeats: 40,
-        amenities: amen.length ? amen : ["WiFi","Charging Point"],
-        ecoFriendly: r(12) > .7,
+        amenities: tier.amenities,
+        ecoFriendly: tier.eco,
       });
     }
     return buses;
@@ -115,12 +122,12 @@
   };
 
   const POPULAR_ROUTES = [
-    { from:"Mumbai", to:"Pune",     price:449, km:150 },
-    { from:"Delhi", to:"Jaipur",    price:599, km:280 },
-    { from:"Bengaluru", to:"Chennai",price:749, km:350 },
-    { from:"Hyderabad", to:"Vijayawada", price:549, km:275 },
-    { from:"Ahmedabad", to:"Surat", price:399, km:270 },
-    { from:"Kolkata", to:"Patna",   price:699, km:580 },
+    { from:"Mumbai", to:"Pune",     price:620, vipPrice:2950, km:150 },
+    { from:"Delhi", to:"Jaipur",    price:680, vipPrice:2950, km:280 },
+    { from:"Bengaluru", to:"Chennai",price:740, vipPrice:3050, km:350 },
+    { from:"Hyderabad", to:"Vijayawada", price:650, vipPrice:2950, km:275 },
+    { from:"Ahmedabad", to:"Surat", price:620, vipPrice:2950, km:270 },
+    { from:"Kolkata", to:"Patna",   price:720, vipPrice:3100, km:580 },
   ];
 
   const DEFAULT_OFFERS = [

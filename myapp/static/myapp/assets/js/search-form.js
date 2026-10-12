@@ -16,6 +16,15 @@
     return `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>`;
   }
 
+  function formatDisplayDate(isoStr){
+    if (!isoStr) return 'Pick journey date';
+    const d = new Date(isoStr);
+    if (isNaN(d.getTime())) return isoStr;
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  }
+
   window.renderSearchForm = function(host, opts){
     if (!host) return;
     opts = opts || {};
@@ -26,15 +35,15 @@
     const initialDate = init.date || BE.fmtISO(new Date());
 
     host.innerHTML = `
-      <form class="search-card-pro shadow-2xl ${cls}" id="be-search-form" style="backdrop-filter: blur(16px);">
+      <form class="search-card-pro shadow-2xl ${cls}" id="be-search-form" onsubmit="return false;" style="backdrop-filter: blur(16px);">
         <!-- TIER 1: ORIGIN & DESTINATION WITH FLOATING INTERACTIVE SWAP -->
-        <div class="row g-2 g-md-3 align-items-center mb-3">
+        <div class="row g-2 g-md-3 align-items-center mb-3 position-relative" id="bsf-tier-1" style="z-index: 50;">
           <div class="col-12 col-md">
-            <div class="search-field-segment" id="bsf-from-box">
+            <div class="search-field-segment" id="bsf-from-box" style="position: relative;">
               <div class="seg-label">
                 ${svgMap()} <span>FROM (ORIGIN)</span>
               </div>
-              <input class="seg-input" id="bsf-from" autocomplete="off" placeholder="Enter departure city (e.g. Mumbai)" value="${initialFrom}">
+              <input class="seg-input" id="bsf-from" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off" placeholder="Enter departure city (e.g. Mumbai)" value="${initialFrom}">
               <div class="text-xs text-muted d-flex align-items-center justify-content-between mt-1" style="font-size:0.72rem;">
                 <span>Boarding point</span>
                 <span class="text-primary font-mono" style="font-size:0.68rem;">Verified pickup</span>
@@ -49,11 +58,11 @@
           </div>
 
           <div class="col-12 col-md">
-            <div class="search-field-segment" id="bsf-to-box">
+            <div class="search-field-segment" id="bsf-to-box" style="position: relative;">
               <div class="seg-label">
                 ${svgMap()} <span>TO (DESTINATION)</span>
               </div>
-              <input class="seg-input" id="bsf-to" autocomplete="off" placeholder="Enter destination city (e.g. Pune)" value="${initialTo}">
+              <input class="seg-input" id="bsf-to" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off" placeholder="Enter destination city (e.g. Pune)" value="${initialTo}">
               <div class="text-xs text-muted d-flex align-items-center justify-content-between mt-1" style="font-size:0.72rem;">
                 <span>Dropping point</span>
                 <span class="text-primary font-mono" style="font-size:0.68rem;">Direct drop</span>
@@ -63,7 +72,7 @@
         </div>
 
         <!-- TIER 2: DATE PICKER WITH QUICK PILLS & POWERFUL SEARCH CTA -->
-        <div class="row g-3 align-items-stretch">
+        <div class="row g-3 align-items-stretch position-relative" id="bsf-tier-2" style="z-index: 5;">
           <div class="col-12 col-md-7">
             <div class="search-field-segment h-100 d-flex flex-column justify-content-between" id="bsf-date-box">
               <div class="d-flex align-items-center justify-content-between mb-1">
@@ -73,11 +82,12 @@
                 <div class="d-flex align-items-center gap-1">
                   <span class="quick-date-pill" id="bsf-pill-today">Today</span>
                   <span class="quick-date-pill" id="bsf-pill-tomorrow">Tomorrow</span>
+                  <span class="quick-date-pill d-none d-sm-inline-block" id="bsf-pill-dayafter">+2 Days</span>
                 </div>
               </div>
               
-              <button type="button" class="search-date-btn mt-1" id="bsf-date">
-                <span class="font-mono" id="bsf-date-label">${initialDate ? BE.fmtDate(new Date(initialDate)) : 'Pick journey date'}</span>
+              <button type="button" class="search-date-btn mt-1" id="bsf-date" aria-label="Select journey date">
+                <span class="font-mono" id="bsf-date-label">${formatDisplayDate(initialDate)}</span>
                 <span class="text-xs text-primary font-mono fw-bold d-flex align-items-center gap-1">
                   Change 📅
                 </span>
@@ -88,7 +98,7 @@
           </div>
 
           <div class="col-12 col-md-5">
-            <button type="submit" class="btn-be btn-primary-grad w-100 h-100 search-submit-btn d-flex align-items-center justify-content-center gap-2 py-3" style="border-radius:1.1rem; min-height:72px;">
+            <button type="button" id="bsf-submit-btn" class="btn-be btn-primary-grad w-100 h-100 search-submit-btn d-flex align-items-center justify-content-center gap-2 py-3" style="border-radius:1.1rem; min-height:72px;">
               <span>${svgSearch()}</span>
               <span class="fw-bold">Search Buses</span>
               <span class="search-btn-icon">${svgArrow()}</span>
@@ -98,16 +108,20 @@
       </form>
     `;
 
+    const formEl = host.querySelector('#be-search-form');
     const fromEl = host.querySelector('#bsf-from');
     const toEl = host.querySelector('#bsf-to');
     const fromBox = host.querySelector('#bsf-from-box');
     const toBox = host.querySelector('#bsf-to-box');
     const swapBtn = host.querySelector('#bsf-swap');
     const dateBtn = host.querySelector('#bsf-date');
+    const dateBox = host.querySelector('#bsf-date-box');
     const dateLabel = host.querySelector('#bsf-date-label');
     const dateValue = host.querySelector('#bsf-date-value');
     const pillToday = host.querySelector('#bsf-pill-today');
     const pillTomorrow = host.querySelector('#bsf-pill-tomorrow');
+    const pillDayafter = host.querySelector('#bsf-pill-dayafter');
+    const submitBtn = host.querySelector('#bsf-submit-btn');
 
     attachCitySuggest(fromEl);
     attachCitySuggest(toEl);
@@ -115,7 +129,9 @@
     // Interactive swap button with 360 degree smooth rotation and field pulse feedback
     let currentRot = 0;
     if (swapBtn) {
-      swapBtn.addEventListener('click', ()=>{
+      swapBtn.addEventListener('click', (e)=>{
+        e.preventDefault();
+        e.stopPropagation();
         currentRot += 180;
         swapBtn.style.transform = `rotate(${currentRot}deg) scale(1.15)`;
         setTimeout(() => {
@@ -143,12 +159,28 @@
       const tomDate = new Date();
       tomDate.setDate(tomDate.getDate() + 1);
       const tomIso = BE.fmtISO(tomDate);
+      const dayafterDate = new Date();
+      dayafterDate.setDate(dayafterDate.getDate() + 2);
+      const dayafterIso = BE.fmtISO(dayafterDate);
 
       if (pillToday) pillToday.classList.toggle('active', isoStr === todayIso);
       if (pillTomorrow) pillTomorrow.classList.toggle('active', isoStr === tomIso);
+      if (pillDayafter) pillDayafter.classList.toggle('active', isoStr === dayafterIso);
     }
 
-    // Initialize Flatpickr
+    function setDateDirectly(d){
+      const iso = BE.fmtISO(d);
+      dateValue.value = iso;
+      dateLabel.textContent = formatDisplayDate(iso);
+      if (fpInstance) fpInstance.setDate(d, false);
+      syncPills(iso);
+      if (dateBox) {
+        dateBox.classList.add('animate-pulse-glow');
+        setTimeout(()=> dateBox.classList.remove('animate-pulse-glow'), 400);
+      }
+    }
+
+    // Initialize Flatpickr strictly for date picking without submitting
     let fpInstance = null;
     if (dateBtn) {
       fpInstance = flatpickr(dateBtn, {
@@ -156,10 +188,11 @@
         defaultDate: dateValue.value,
         minDate: 'today',
         animate: true,
+        disableMobile: "true",
         onChange: function(sel, str){
           if (sel && sel.length > 0) {
             dateValue.value = str;
-            dateLabel.textContent = BE.fmtDate(sel[0]);
+            dateLabel.textContent = formatDisplayDate(str);
             syncPills(str);
           }
         },
@@ -169,47 +202,80 @@
 
     syncPills(dateValue.value);
 
-    // Quick Date Pills handlers
+    // Quick Date Pills handlers — stops event propagation and NEVER submits
     if (pillToday) {
       pillToday.addEventListener('click', (e)=>{
+        e.preventDefault();
         e.stopPropagation();
-        const d = new Date();
-        const iso = BE.fmtISO(d);
-        dateValue.value = iso;
-        dateLabel.textContent = BE.fmtDate(d);
-        if (fpInstance) fpInstance.setDate(d);
-        syncPills(iso);
+        setDateDirectly(new Date());
       });
     }
 
     if (pillTomorrow) {
       pillTomorrow.addEventListener('click', (e)=>{
+        e.preventDefault();
         e.stopPropagation();
         const d = new Date();
         d.setDate(d.getDate() + 1);
-        const iso = BE.fmtISO(d);
-        dateValue.value = iso;
-        dateLabel.textContent = BE.fmtDate(d);
-        if (fpInstance) fpInstance.setDate(d);
-        syncPills(iso);
+        setDateDirectly(d);
       });
     }
 
-    // Form submit handler with validation and loading feedback
-    host.querySelector('#be-search-form').addEventListener('submit', e=>{
-      e.preventDefault();
+    if (pillDayafter) {
+      pillDayafter.addEventListener('click', (e)=>{
+        e.preventDefault();
+        e.stopPropagation();
+        const d = new Date();
+        d.setDate(d.getDate() + 2);
+        setDateDirectly(d);
+      });
+    }
+
+    // Form submission prevention: NEVER allow enter key or default submit to auto-search
+    if (formEl) {
+      formEl.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      });
+      formEl.addEventListener('keydown', (e)=>{
+        if (e.key === 'Enter') {
+          // Do NOT submit search on enter in text inputs
+          e.preventDefault();
+          e.stopPropagation();
+          if (document.activeElement === submitBtn) {
+            doSearch();
+          }
+        }
+      });
+    }
+
+    // Search is ONLY triggered when the user explicitly clicks the "Search Buses" CTA
+    function doSearch(){
       const from = fromEl.value.trim();
       const to = toEl.value.trim();
       const date = dateValue.value;
-      if (!from || !to || !date) return toast.error('Please enter departure city, destination city, and travel date');
-      if (from.toLowerCase() === to.toLowerCase()) return toast.error('Origin and Destination cannot be the same city');
+
+      if (!from || !to || !date) {
+        return toast.error('Please enter departure city, destination city, and travel date');
+      }
+      if (from.toLowerCase() === to.toLowerCase()) {
+        return toast.error('Origin and Destination cannot be the same city');
+      }
       
-      const submitBtn = host.querySelector('.search-submit-btn');
       if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status"></span> Searching buses...`;
       }
       location.href = `/search/?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${encodeURIComponent(date)}`;
-    });
+    }
+
+    if (submitBtn) {
+      submitBtn.addEventListener('click', (e)=>{
+        e.preventDefault();
+        e.stopPropagation();
+        doSearch();
+      });
+    }
   };
 })();

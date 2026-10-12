@@ -104,7 +104,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const seats = [];
   const booked = new Set();
   const ladies = new Set();
-  const premium = new Set();
+  const firstClass = new Set();
+  const executive = new Set();
 
   const rows = Math.ceil(total/4);
   let idx = 0;
@@ -114,8 +115,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
         const s = r + c;
         seats.push(s);
         if ((idx*7 + bus.id.length) % 5 === 0) booked.add(s);
-        else if (idx % 11 === 3) ladies.add(s);
-        else if (r <= 2) premium.add(s);
+        else if (r <= 2) firstClass.add(s);  // Rows 1 & 2: First Class VIP
+        else if (r === 3) executive.add(s); // Row 3: Executive Suite
+        else if (idx % 11 === 3) ladies.add(s); // Ladies only
         idx++;
       }
     }
@@ -129,25 +131,40 @@ document.addEventListener('DOMContentLoaded', ()=>{
     });
   }
 
+  const isVipBus = bus.type && (bus.type.includes('VIP') || bus.type.includes('Royal Executive'));
+  const isFirstClassBus = bus.type && bus.type.includes('First Class');
+  const firstClassPrem = (isVipBus || isFirstClassBus) ? 850 : 650;
+  const execPrem = (isVipBus || isFirstClassBus) ? 450 : 350;
+
   let selected = [];
-  const seatPrice = s => premium.has(s) ? bus.price + 150 : bus.price;
+  const seatPrice = s => {
+    if (firstClass.has(s)) return bus.price + firstClassPrem;
+    if (executive.has(s)) return bus.price + execPrem;
+    return bus.price;
+  };
   const sumTotal = () => selected.reduce((a,s)=> a + seatPrice(s), 0);
 
-  document.getElementById('sb-name').textContent = bus.name;
+  const vipBadge = isVipBus
+    ? ' <span class="badge rounded-pill" style="background:linear-gradient(135deg,#f59e0b,#ea580c);color:#fff;font-size:.72rem;padding:.35rem .75rem;box-shadow:0 2px 10px rgba(245,158,11,0.4);">💎 VIP ULTRA LUXURY FLEET</span>'
+    : (isFirstClassBus
+      ? ' <span class="badge rounded-pill" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:.72rem;padding:.35rem .75rem;box-shadow:0 2px 10px rgba(99,102,241,0.4);">👑 FIRST CLASS CLUB FLEET</span>'
+      : '');
+  document.getElementById('sb-name').innerHTML = bus.name + vipBadge;
   document.getElementById('sb-meta').textContent = bus.type + ' · ' + from + ' → ' + to + ' · ' + (date || 'Today');
   document.getElementById('sb-dep').textContent = bus.departure;
 
   document.getElementById('sb-legend').innerHTML = [
-    ['Available', 'background:hsl(var(--card));border:2px solid hsl(var(--border));'],
+    ['Standard (₹' + bus.price + ')', 'background:hsl(var(--card));border:2px solid hsl(var(--border));'],
+    ['👑 First Class VIP (+₹' + firstClassPrem + ')', 'background:rgba(245,158,11,.22);border:2px solid #f59e0b;box-shadow:0 0 10px rgba(245,158,11,0.35);'],
+    ['⭐ Executive (+₹' + execPrem + ')', 'background:rgba(139,92,246,.18);border:2px solid #8b5cf6;'],
+    ['💗 Ladies Only', 'background:rgba(244,114,182,.15);border:2px solid #f472b6;'],
     ['Selected', 'background:var(--gradient-primary);'],
-    ['Booked', 'background:hsl(var(--muted));border:1px solid transparent;opacity:.65;'],
-    ['Ladies Only', 'background:rgba(244,114,182,.15);border:2px solid #f472b6;'],
-    ['Premium (+₹150)', 'background:rgba(251,191,36,.15);border:2px solid #fbbf24;']
+    ['Booked', 'background:hsl(var(--muted));border:1px solid transparent;opacity:.65;']
   ].map(([t,s])=>`<span class="d-inline-flex align-items-center gap-1.5"><span style="display:inline-block;width:1.25rem;height:.85rem;border-radius:.3rem;${s}"></span><span class="text-fg font-medium">${t}</span></span>`).join('');
 
   function seatBtn(s){
     if (!s) return '<div></div>';
-    const isBooked = booked.has(s), isSel = selected.includes(s), isLady = ladies.has(s), isPrem = premium.has(s);
+    const isBooked = booked.has(s), isSel = selected.includes(s), isLady = ladies.has(s), isFirst = firstClass.has(s), isExec = executive.has(s);
     let extraStyle = '';
     let category = 'Standard Seat';
 
@@ -156,19 +173,23 @@ document.addEventListener('DOMContentLoaded', ()=>{
       category = 'Already Booked';
     } else if (isSel) {
       extraStyle = 'background:var(--gradient-primary);color:hsl(var(--primary-foreground));transform:scale(1.08);box-shadow:var(--shadow-elegant);border-color:transparent;';
+    } else if (isFirst) {
+      extraStyle = 'border:2px solid #f59e0b;background:rgba(245,158,11,.16);color:#b45309;box-shadow:0 0 10px rgba(245,158,11,0.25);';
+      category = `👑 First Class VIP (+₹${firstClassPrem})`;
+    } else if (isExec) {
+      extraStyle = 'border:2px solid #8b5cf6;background:rgba(139,92,246,.14);color:#6d28d9;';
+      category = `⭐ Executive (+₹${execPrem})`;
     } else if (isLady) {
       extraStyle = 'border:2px solid #f472b6;background:rgba(244,114,182,.15);color:#be185d;';
       category = 'Ladies-Only Seat';
-    } else if (isPrem) {
-      extraStyle = 'border:2px solid #fbbf24;background:rgba(251,191,36,.15);color:#92400e;';
-      category = 'Premium Seat (+₹150)';
     } else {
       extraStyle = 'border:2px solid hsl(var(--border));background:hsl(var(--card));';
     }
 
     const titleText = `${s} · ${category} · ₹${seatPrice(s)}`;
     return `<button ${isBooked?'disabled':''} data-seat="${s}" title="${titleText}" class="seat-btn w-100 position-relative rounded-lg font-bold text-xs" style="${extraStyle}">
-      ${isPrem && !isBooked ? '<span style="position:absolute;top:-.45rem;right:-.4rem;font-size:.65rem;">👑</span>':''}
+      ${isFirst && !isBooked ? '<span style="position:absolute;top:-.45rem;right:-.4rem;font-size:.7rem;">👑</span>':''}
+      ${isExec && !isBooked ? '<span style="position:absolute;top:-.45rem;right:-.4rem;font-size:.65rem;">⭐</span>':''}
       ${isLady && !isBooked ? '<span style="position:absolute;top:-.45rem;right:-.4rem;font-size:.65rem;">💗</span>':''}
       ${s}
     </button>`;
@@ -233,7 +254,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
       return toast.error('Maximum 6 seats allowed per booking');
     } else {
       selected.push(s);
-      toast.success(`Seat ${s} added (₹${seatPrice(s)})`);
+      const tierName = firstClass.has(s) ? '👑 First Class VIP Seat' : (executive.has(s) ? '⭐ Executive Seat' : 'Seat');
+      toast.success(`${tierName} ${s} added (₹${seatPrice(s)})`);
     }
     paint();
   };

@@ -36,45 +36,119 @@ def ensure_seeded_offers():
             )
 
 def ensure_seeded_buses(from_city, to_city):
-    # Check if we have buses for this route
-    if not Bus.objects.filter(from_city__iexact=from_city, to_city__iexact=to_city).exists():
-        OPERATORS = ["VRL Travels","SRS Travels","Orange Tours","Neeta Tours","Kallada","Patel Travels","Zingbus","Intrcity SmartBus","RedBus Express","Sharma Travels"]
-        TYPES = ["AC Sleeper","Non-AC Sleeper","AC Seater","Volvo Multi-Axle","AC Semi-Sleeper","Sleeper + Seater"]
-        AMENITIES = ["WiFi","Charging Point","Blanket","Water Bottle","Reading Light","Snacks","Live Tracking","Movies"]
+    from_city = (from_city or 'Mumbai').strip().title()
+    to_city = (to_city or 'Pune').strip().title()
+
+    # Check if this route already has the modern 8-tier fleet with VIP and First Class at expensive fares
+    buses_qs = Bus.objects.filter(from_city__iexact=from_city, to_city__iexact=to_city)
+    has_vip = buses_qs.filter(bus_type__icontains='VIP').exists()
+    has_first_class = buses_qs.filter(bus_type__icontains='First Class').exists()
+    has_full_tiers = buses_qs.count() >= 8 and has_vip and has_first_class
+    # Check if VIP bus price reflects the expensive premium (>= 2800)
+    vip_bus = buses_qs.filter(bus_type__icontains='VIP Ultra Luxury').first()
+    is_expensive = vip_bus and vip_bus.price >= 2800
+
+    if has_full_tiers and is_expensive:
+        return
+
+    # Delete any old incomplete or outdated non-custom buses for this route to upgrade cleanly
+    buses_qs.filter(is_custom=False).delete()
+
+    TIER_SPECS = [
+        {
+            "type": "VIP Ultra Luxury Sleeper",
+            "operators": ["Orange Tours VIP Gold", "Intrcity SmartBus VIP", "Neeta Gold Club Suite", "Kallada G4 VIP"],
+            "base_price": 2950,
+            "var_max": 500,
+            "amenities": "WiFi,Charging Point,Blanket,Snacks,Live Tracking,Movies,Water Bottle",
+            "eco": True
+        },
+        {
+            "type": "Royal Executive VIP Volvo",
+            "operators": ["RedBus Prime Royal VIP", "Sharma Executive Club", "Orange Tours Platinum VIP"],
+            "base_price": 2650,
+            "var_max": 450,
+            "amenities": "WiFi,Charging Point,Blanket,Live Tracking,Snacks,Water Bottle",
+            "eco": False
+        },
+        {
+            "type": "First Class Multi-Axle AC",
+            "operators": ["VRL Travels First Class", "Volvo Club One Platinum", "SRS Platinum Executive", "Zingbus Maxx First Class"],
+            "base_price": 2450,
+            "var_max": 400,
+            "amenities": "WiFi,Charging Point,Blanket,Water Bottle,Reading Light,Snacks,Live Tracking",
+            "eco": True
+        },
+        {
+            "type": "Volvo Multi-Axle AC",
+            "operators": ["VRL Travels", "SRS Travels", "Neeta Tours"],
+            "base_price": 1550,
+            "var_max": 250,
+            "amenities": "WiFi,Charging Point,Water Bottle,Reading Light",
+            "eco": False
+        },
+        {
+            "type": "AC Sleeper",
+            "operators": ["Neeta Tours", "Patel Travels", "Zingbus", "Kallada"],
+            "base_price": 1250,
+            "var_max": 200,
+            "amenities": "Charging Point,Blanket,Water Bottle",
+            "eco": False
+        },
+        {
+            "type": "AC Semi-Sleeper",
+            "operators": ["Sharma Travels", "Kallada", "Intrcity SmartBus"],
+            "base_price": 950,
+            "var_max": 150,
+            "amenities": "Charging Point,Reading Light",
+            "eco": False
+        },
+        {
+            "type": "Non-AC Sleeper",
+            "operators": ["Patel Travels", "Sharma Travels"],
+            "base_price": 780,
+            "var_max": 120,
+            "amenities": "Reading Light,Water Bottle",
+            "eco": False
+        },
+        {
+            "type": "AC Seater",
+            "operators": ["RedBus Express", "Zingbus"],
+            "base_price": 620,
+            "var_max": 120,
+            "amenities": "WiFi,Charging Point",
+            "eco": True
+        }
+    ]
+
+    seed_base = sum(ord(c) for c in (from_city + to_city))
+    for i, tier in enumerate(TIER_SPECS):
+        def r(n):
+            return seed_fn(seed_base + i * 17 + n)
+        dep = int(math.floor(r(1) * 22)) + 1
+        dur = 4 + int(math.floor(r(2) * 10))
+        arr = (dep + dur) % 24
+        op_list = tier["operators"]
+        op = op_list[int(math.floor(r(3) * len(op_list)))]
+        price = tier["base_price"] + int(math.floor(r(5) * tier["var_max"]))
+        dep_mins = "30" if r(8) > 0.5 else "00"
+        arr_mins = "30" if r(9) > 0.5 else "00"
         
-        seed_base = sum(ord(c) for c in (from_city + to_city))
-        for i in range(8):
-            def r(n):
-                return seed_fn(seed_base + i * 13 + n)
-            dep = int(math.floor(r(1) * 22)) + 1
-            dur = 4 + int(math.floor(r(2) * 10))
-            arr = (dep + dur) % 24
-            op_idx = int(math.floor(r(3) * len(OPERATORS)))
-            t_idx = int(math.floor(r(4) * len(TYPES)))
-            price = 400 + int(math.floor(r(5) * 1600))
-            rating = f"{3.8 + r(6) * 1.2:.1f}"
-            amen = [a for j, a in enumerate(AMENITIES) if r(7 + j) > 0.5][:4]
-            if not amen:
-                amen = ["WiFi", "Charging Point"]
-            
-            dep_mins = "30" if r(8) > 0.5 else "00"
-            arr_mins = "30" if r(9) > 0.5 else "00"
-            
-            Bus.objects.create(
-                operator=OPERATORS[op_idx],
-                bus_type=TYPES[t_idx],
-                from_city=from_city,
-                to_city=to_city,
-                price=price,
-                departure=f"{dep:02d}:{dep_mins}",
-                arrival=f"{arr:02d}:{arr_mins}",
-                duration=f"{dur}h {int(math.floor(r(10) * 60))}m",
-                seats_available=5 + int(math.floor(r(11) * 35)),
-                total_seats=40,
-                amenities=",".join(amen),
-                eco_friendly=r(12) > 0.7,
-                is_custom=False
-            )
+        Bus.objects.create(
+            operator=op,
+            bus_type=tier["type"],
+            from_city=from_city,
+            to_city=to_city,
+            price=price,
+            departure=f"{dep:02d}:{dep_mins}",
+            arrival=f"{arr:02d}:{arr_mins}",
+            duration=f"{dur}h {int(math.floor(r(10) * 60))}m",
+            seats_available=5 + int(math.floor(r(11) * 35)),
+            total_seats=40,
+            amenities=tier["amenities"],
+            eco_friendly=tier["eco"],
+            is_custom=False
+        )
 
 # ---- Template Views ----
 
@@ -87,8 +161,8 @@ def index(request):
 
 def search(request):
     """Search results page with filters"""
-    from_city = request.GET.get('from', 'Mumbai')
-    to_city = request.GET.get('to', 'Pune')
+    from_city = (request.GET.get('from', '') or 'Mumbai').strip().title()
+    to_city = (request.GET.get('to', '') or 'Pune').strip().title()
     ensure_seeded_buses(from_city, to_city)
 
     # Get both seeded and custom buses for this route
@@ -99,6 +173,7 @@ def search(request):
 
     buses_list = []
     for b in buses:
+        rating = "4.9" if "VIP" in b.bus_type else ("4.8" if "First Class" in b.bus_type else ("4.6" if "Volvo" in b.bus_type else "4.3"))
         buses_list.append({
             "id": str(b.id),
             "name": b.operator,
@@ -107,7 +182,7 @@ def search(request):
             "arrival": b.arrival,
             "duration": b.duration,
             "price": b.price,
-            "rating": "4.2", # Static rating for display
+            "rating": rating,
             "seatsAvailable": b.seats_available,
             "totalSeats": b.total_seats,
             "amenities": b.amenities.split(",") if b.amenities else ["WiFi", "Charging Point"],
@@ -122,15 +197,14 @@ def search(request):
 
 def seats(request):
     """Seat selection page"""
-    bus_id = request.GET.get('busId')
-    from_city = request.GET.get('from', 'Mumbai')
-    to_city = request.GET.get('to', 'Pune')
+    bus_id = request.GET.get('busId', '')
+    from_city = (request.GET.get('from', '') or 'Mumbai').strip().title()
+    to_city = (request.GET.get('to', '') or 'Pune').strip().title()
     date_str = request.GET.get('date', '')
 
     bus_obj = None
     if bus_id:
         try:
-            # Custom buses might be integers in DB or standard ids
             if bus_id.startswith("CB"):
                 bus_obj = Bus.objects.filter(id=int(bus_id[2:])).first()
             elif bus_id.isdigit():
@@ -139,9 +213,7 @@ def seats(request):
             pass
 
     if not bus_obj:
-        # Fallback to seeded buses if matching id is not direct
         ensure_seeded_buses(from_city, to_city)
-        # Find any bus as fallback
         bus_obj = Bus.objects.filter(from_city__iexact=from_city, to_city__iexact=to_city).first()
 
     if not bus_obj:
@@ -182,7 +254,49 @@ def seats(request):
 
 def booking(request):
     """Booking & payment page"""
-    return render(request, 'myapp/booking.html')
+    bus_id = request.GET.get('busId', '')
+    from_city = (request.GET.get('from', '') or 'Mumbai').strip().title()
+    to_city = (request.GET.get('to', '') or 'Pune').strip().title()
+    date_str = request.GET.get('date', '')
+    seats_str = request.GET.get('seats', '')
+    total_str = request.GET.get('total', '0')
+
+    bus_obj = None
+    if bus_id:
+        try:
+            if bus_id.startswith("CB"):
+                bus_obj = Bus.objects.filter(id=int(bus_id[2:])).first()
+            elif bus_id.isdigit():
+                bus_obj = Bus.objects.filter(id=int(bus_id)).first()
+        except ValueError:
+            pass
+
+    if not bus_obj:
+        ensure_seeded_buses(from_city, to_city)
+        bus_obj = Bus.objects.filter(from_city__iexact=from_city, to_city__iexact=to_city).first()
+
+    bus_data = None
+    if bus_obj:
+        bus_data = {
+            "id": str(bus_obj.id),
+            "name": bus_obj.operator,
+            "type": bus_obj.bus_type,
+            "departure": bus_obj.departure,
+            "arrival": bus_obj.arrival,
+            "duration": bus_obj.duration,
+            "price": bus_obj.price,
+            "totalSeats": bus_obj.total_seats,
+            "seatsAvailable": bus_obj.seats_available
+        }
+
+    return render(request, 'myapp/booking.html', {
+        'bus_json': json.dumps(bus_data) if bus_data else 'null',
+        'from_city': from_city,
+        'to_city': to_city,
+        'date': date_str,
+        'seats': seats_str,
+        'total': total_str
+    })
 
 def confirmation(request):
     """Booking confirmation page"""

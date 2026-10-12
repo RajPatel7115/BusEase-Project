@@ -108,8 +108,90 @@
               </div>
             </div>
 
-            <!-- Card Tab -->
+            <!-- Card Tab with Interactive 3D Card Animation -->
             <div class="tab-pane fade" id="pay-card">
+              <!-- Live 3D Interactive Card Preview -->
+              <div class="interactive-card-stage">
+                <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+                  <span class="text-xs text-muted font-mono uppercase tracking-wider">💳 Live Interactive 3D Card Preview</span>
+                  <button type="button" id="card-flip-btn" class="btn-be btn-ghost-be py-0 px-2 text-xs text-primary d-inline-flex align-items-center gap-1" style="height:1.75rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                    <span>Flip to see CVV</span>
+                  </button>
+                </div>
+
+                <div class="card-3d-scene" id="card-3d-scene" title="Click or focus CVV to flip">
+                  <div class="card-3d-box" id="card-3d-box">
+                    <!-- FRONT OF CARD -->
+                    <div class="card-3d-face card-3d-front">
+                      <div class="card-foil-shine"></div>
+                      <div class="d-flex justify-content-between align-items-start">
+                        <div class="d-flex align-items-center gap-2">
+                          <!-- Gold Brass EMV Chip -->
+                          <div class="card-emv-chip">
+                            <div class="chip-line horizontal"></div>
+                            <div class="chip-line vertical"></div>
+                          </div>
+                          <!-- Contactless Waves -->
+                          <svg class="card-nfc-icon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8.5 16.5a5 5 0 0 1 0-7"/><path d="M12 19a8.5 8.5 0 0 1 0-14"/><path d="M15.5 21.5a12 12 0 0 1 0-19"/></svg>
+                        </div>
+                        <!-- Card Network Badge -->
+                        <div class="card-brand-badge" id="card-brand-display">
+                          <span class="brand-name" id="card-brand-name">RuPay</span>
+                          <span class="brand-sub" id="card-brand-tier">PLATINUM</span>
+                        </div>
+                      </div>
+
+                      <!-- Formatted Monospace Card Number -->
+                      <div class="card-number-display" id="card-number-display">
+                        <span id="cnum-g1">••••</span>
+                        <span id="cnum-g2">••••</span>
+                        <span id="cnum-g3">••••</span>
+                        <span id="cnum-g4">••••</span>
+                      </div>
+
+                      <!-- Card Bottom Info -->
+                      <div class="d-flex justify-content-between align-items-end mt-auto">
+                        <div>
+                          <div class="card-label">CARDHOLDER</div>
+                          <div class="card-val card-holder-text" id="card-holder-display">PRIYA SHARMA</div>
+                        </div>
+                        <div class="text-end">
+                          <div class="card-label">EXPIRES</div>
+                          <div class="card-val font-mono" id="card-exp-display">MM/YY</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- BACK OF CARD -->
+                    <div class="card-3d-face card-3d-back">
+                      <div class="card-mag-strip"></div>
+                      <div class="card-back-body">
+                        <div>
+                          <div class="d-flex align-items-center justify-content-end mb-1">
+                            <span class="text-xs font-mono" style="color:rgba(255,255,255,0.7); font-size:0.62rem;">SECURITY CODE</span>
+                          </div>
+                          <div class="card-sign-strip">
+                            <span class="signature-watermark">AUTHORIZED SIGNATURE</span>
+                            <span class="card-cvv-val font-mono" id="card-cvv-display">•••</span>
+                          </div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                          <div class="card-hologram">
+                            <div class="holo-inner"></div>
+                          </div>
+                          <div class="card-back-disclaimer text-end">
+                            256-bit SSL encrypted checkout<br>
+                            Issued under RBI / NPCI guidelines
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card Input Form Fields -->
               <div class="d-flex flex-column gap-3">
                 <div>
                   <label class="label-be font-semibold">Card number</label>
@@ -125,8 +207,8 @@
                     <input id="bk-card-exp" class="input-be mt-1 font-mono" placeholder="MM/YY" maxlength="5">
                   </div>
                   <div class="col-6">
-                    <label class="label-be font-semibold">CVV</label>
-                    <input type="password" class="input-be mt-1 font-mono" placeholder="•••" maxlength="4">
+                    <label class="label-be font-semibold">CVV / CVC</label>
+                    <input id="bk-card-cvv" type="password" class="input-be mt-1 font-mono" placeholder="•••" maxlength="4">
                   </div>
                 </div>
               </div>
@@ -196,8 +278,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const km = +BE.qs('km','0');
   const isCharter = BE.qs('kind','')==='charter';
   const fleet = BE.qs('fleet','');
+  const serverBus = {{ bus_json|default:'null'|safe }};
   const buses = BE.generateBuses(from||'Mumbai', to||'Pune');
-  const bus = buses.find(b=>b.id===busId) || buses[0];
+  const bus = serverBus || buses.find(b=>b.id===busId) || buses[0];
 
   const u = BE.Auth.current();
   if (u){
@@ -243,21 +326,133 @@ document.addEventListener('DOMContentLoaded', ()=>{
     toast.success('UPI ID verified successfully');
   });
 
-  // Card Formatting
+  // ==========================================
+  // Interactive 3D Payment Card Live Engine
+  // ==========================================
+  const cardBox = document.getElementById('card-3d-box');
+  const cardScene = document.getElementById('card-3d-scene');
+  const cardFlipBtn = document.getElementById('card-flip-btn');
   const cardNum = document.getElementById('bk-card-num');
+  const cardName = document.getElementById('bk-card-name');
+  const cardExp = document.getElementById('bk-card-exp');
+  const cardCvv = document.getElementById('bk-card-cvv');
+  const psgrName = document.getElementById('bk-name');
+
+  const cnumG1 = document.getElementById('cnum-g1');
+  const cnumG2 = document.getElementById('cnum-g2');
+  const cnumG3 = document.getElementById('cnum-g3');
+  const cnumG4 = document.getElementById('cnum-g4');
+  const cardHolderDisplay = document.getElementById('card-holder-display');
+  const cardExpDisplay = document.getElementById('card-exp-display');
+  const cardCvvDisplay = document.getElementById('card-cvv-display');
+  const cardBrandName = document.getElementById('card-brand-name');
+  const cardBrandTier = document.getElementById('card-brand-tier');
+
+  // Synchronize initial passenger name with cardholder preview
+  function syncHolderName() {
+    const val = (cardName && cardName.value.trim()) || (psgrName && psgrName.value.trim()) || 'PRIYA SHARMA';
+    if (cardHolderDisplay) cardHolderDisplay.textContent = val.toUpperCase();
+  }
+  syncHolderName();
+  if (psgrName) psgrName.addEventListener('input', syncHolderName);
+  if (cardName) cardName.addEventListener('input', syncHolderName);
+
+  // Card Brand Detection
+  function detectCardBrand(digits) {
+    if (/^4/.test(digits)) {
+      return { name: 'VISA', tier: 'SIGNATURE', color: '#60a5fa' };
+    } else if (/^(5[1-5]|2[2-7])/.test(digits)) {
+      return { name: 'Mastercard', tier: 'WORLD ELITE', color: '#fb923c' };
+    } else if (/^(60|65|81|82|508)/.test(digits)) {
+      return { name: 'RuPay', tier: 'PLATINUM', color: '#34d399' };
+    } else if (/^3[47]/.test(digits)) {
+      return { name: 'AMEX', tier: 'CENTURION', color: '#38bdf8' };
+    }
+    return { name: 'RuPay', tier: 'PLATINUM', color: '#fbbf24' };
+  }
+
+  // Interactive Card Number Input & Live 3D Digit Animation
   if (cardNum) {
-    cardNum.addEventListener('input', e=>{
-      let val = e.target.value.replace(/\D/g, '').substring(0, 16);
-      val = val.match(/.{1,4}/g)?.join(' ') || val;
-      e.target.value = val;
+    cardNum.addEventListener('input', e => {
+      let raw = e.target.value.replace(/\D/g, '').substring(0, 16);
+      let formatted = raw.match(/.{1,4}/g)?.join(' ') || raw;
+      e.target.value = formatted;
+
+      // Update 4 group spans on 3D card preview
+      const chunks = [raw.slice(0,4), raw.slice(4,8), raw.slice(8,12), raw.slice(12,16)];
+      const els = [cnumG1, cnumG2, cnumG3, cnumG4];
+      chunks.forEach((chunk, i) => {
+        let displayStr = chunk.padEnd(4, '•');
+        if (els[i]) {
+          els[i].textContent = displayStr;
+          els[i].style.transform = 'scale(1.08)';
+          setTimeout(() => { if (els[i]) els[i].style.transform = 'scale(1)'; }, 140);
+        }
+      });
+
+      // Update Brand Detection
+      const brand = detectCardBrand(raw);
+      if (cardBrandName) cardBrandName.textContent = brand.name;
+      if (cardBrandTier) {
+        cardBrandTier.textContent = brand.tier;
+        cardBrandTier.style.color = brand.color;
+      }
     });
   }
-  const cardExp = document.getElementById('bk-card-exp');
+
+  // Interactive Expiry Input & Live Preview
   if (cardExp) {
-    cardExp.addEventListener('input', e=>{
+    cardExp.addEventListener('input', e => {
       let val = e.target.value.replace(/\D/g, '').substring(0, 4);
       if (val.length >= 2) val = val.substring(0, 2) + '/' + val.substring(2);
       e.target.value = val;
+      if (cardExpDisplay) cardExpDisplay.textContent = val || 'MM/YY';
+    });
+  }
+
+  // Interactive CVV Input & 3D Auto-Flip Animation
+  if (cardCvv) {
+    cardCvv.addEventListener('input', e => {
+      let val = e.target.value.replace(/\D/g, '').substring(0, 4);
+      e.target.value = val;
+      if (cardCvvDisplay) cardCvvDisplay.textContent = val ? val.replace(/./g, '•') : '•••';
+    });
+    // Auto-flip to back when user focuses CVV
+    cardCvv.addEventListener('focus', () => {
+      if (cardBox) cardBox.classList.add('is-flipped');
+    });
+    // Auto-flip to front when user blurs CVV
+    cardCvv.addEventListener('blur', () => {
+      if (cardBox) cardBox.classList.remove('is-flipped');
+    });
+  }
+
+  // Manual Flip toggle button & scene click
+  function toggleCardFlip() {
+    if (cardBox) cardBox.classList.toggle('is-flipped');
+  }
+  if (cardFlipBtn) cardFlipBtn.addEventListener('click', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleCardFlip();
+  });
+  if (cardScene) cardScene.addEventListener('click', toggleCardFlip);
+
+  // 3D Mouse Perspective Parallax Tilt
+  if (cardScene && cardBox) {
+    cardScene.addEventListener('mousemove', e => {
+      if (cardBox.classList.contains('is-flipped')) return;
+      const rect = cardScene.getBoundingClientRect();
+      const x = e.clientX - rect.left - (rect.width / 2);
+      const y = e.clientY - rect.top - (rect.height / 2);
+      const rotateX = -(y / (rect.height / 2)) * 12;
+      const rotateY = (x / (rect.width / 2)) * 14;
+      cardBox.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+    });
+    cardScene.addEventListener('mouseleave', () => {
+      if (!cardBox.classList.contains('is-flipped')) {
+        cardBox.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
+      }
     });
   }
 

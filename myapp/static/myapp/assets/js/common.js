@@ -433,14 +433,24 @@
     }
 
     let activeIdx = -1;
+    const parentRow = wrap.closest('.row') || wrap.parentElement;
+
+    function hideMenu(){
+      menu.classList.remove('show');
+      menu.innerHTML = '';
+      wrap.classList.remove('has-suggest');
+      wrap.style.zIndex = '';
+      if (parentRow) {
+        parentRow.style.zIndex = (parentRow.id === 'bsf-tier-1') ? '50' : '';
+      }
+    }
 
     function paint(q){
       activeIdx = -1;
       const qLower = (q||'').toLowerCase().trim();
       const matches = qLower ? BE.CITIES.filter(c => c.toLowerCase().includes(qLower)).slice(0, 7) : [];
       if (!matches.length){
-        menu.classList.remove('show');
-        menu.innerHTML = '';
+        hideMenu();
         return;
       }
       menu.innerHTML = matches.map((c, i) => {
@@ -453,25 +463,70 @@
         return `<button type="button" data-city="${c}" data-idx="${i}" class="suggest-item">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:hsl(var(--primary));"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
           <span>${formatted}</span>
+          <span class="ms-auto text-xs text-muted font-mono" style="font-size:0.68rem;">Direct Hub</span>
         </button>`;
       }).join('');
       menu.classList.add('show');
+      wrap.classList.add('has-suggest');
+      wrap.style.zIndex = '999';
+      if (parentRow) parentRow.style.zIndex = '999';
 
       menu.querySelectorAll('button').forEach(b => {
+        // Prevent blur on mousedown without removing menu prematurely
         b.addEventListener('mousedown', e => {
           e.preventDefault();
-          input.value = b.dataset.city;
-          onPick && onPick(b.dataset.city);
-          menu.classList.remove('show');
+          e.stopPropagation();
+        });
+        // Consume click completely so it NEVER passes through to buttons behind it
+        b.addEventListener('click', e => {
+          e.preventDefault();
+          e.stopPropagation();
+          const city = b.dataset.city;
+          input.value = city;
+          onPick && onPick(city);
+          hideMenu();
+
+          // Smart transition: if origin selected, advance to destination without searching
+          if (input.id === 'bsf-from') {
+            const toInput = document.getElementById('bsf-to');
+            if (toInput) setTimeout(() => toInput.focus(), 60);
+          } else if (input.id === 'bsf-to') {
+            input.blur();
+          }
         });
       });
     }
 
     input.addEventListener('input', ()=> paint(input.value));
     input.addEventListener('focus', ()=> input.value && paint(input.value));
-    input.addEventListener('blur', ()=> setTimeout(()=> menu.classList.remove('show'), 200));
+    input.addEventListener('blur', ()=> setTimeout(()=> hideMenu(), 250));
 
     input.addEventListener('keydown', e => {
+      // Prevent Enter key in city inputs from auto-submitting search form
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        e.stopPropagation();
+        if (menu.classList.contains('show')) {
+          const items = menu.querySelectorAll('button');
+          if (items.length) {
+            const target = (activeIdx >= 0 && items[activeIdx]) ? items[activeIdx] : items[0];
+            if (target) {
+              const picked = target.dataset.city;
+              input.value = picked;
+              onPick && onPick(picked);
+            }
+          }
+          hideMenu();
+        }
+        if (input.id === 'bsf-from') {
+          const toInput = document.getElementById('bsf-to');
+          if (toInput) toInput.focus();
+        } else if (input.id === 'bsf-to') {
+          input.blur();
+        }
+        return;
+      }
+
       if (!menu.classList.contains('show')) return;
       const items = menu.querySelectorAll('button');
       if (!items.length) return;
@@ -480,16 +535,18 @@
         e.preventDefault();
         activeIdx = (activeIdx + 1) % items.length;
         items.forEach((item, idx) => item.classList.toggle('active', idx === activeIdx));
+        if (activeIdx >= 0 && items[activeIdx]) {
+          items[activeIdx].scrollIntoView({ block: 'nearest' });
+        }
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
         activeIdx = (activeIdx - 1 + items.length) % items.length;
         items.forEach((item, idx) => item.classList.toggle('active', idx === activeIdx));
-      } else if (e.key === 'Enter' && activeIdx >= 0) {
-        e.preventDefault();
-        const picked = items[activeIdx].dataset.city;
-        input.value = picked;
-        onPick && onPick(picked);
-        menu.classList.remove('show');
+        if (activeIdx >= 0 && items[activeIdx]) {
+          items[activeIdx].scrollIntoView({ block: 'nearest' });
+        }
+      } else if (e.key === 'Escape') {
+        hideMenu();
       }
     });
   };
